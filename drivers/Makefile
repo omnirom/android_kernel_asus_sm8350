@@ -64,7 +64,7 @@ obj-y				+= gpu/
 obj-$(CONFIG_CONNECTOR)		+= connector/
 
 #VODKA camera moto driver.
-ifeq ($(ASUS_BUILD_PROJECT),VODKA)
+ifdef CONFIG_MACH_ASUS_VODKA
 obj-y				+= msp/
 endif
 
@@ -209,7 +209,7 @@ obj-y				+= ec_hid_driver/
 obj-y				+= gamepad_hid_driver/
 
 #Tuxera
-ifeq ($(ASUS_BUILD_PROJECT),ZS673KS)
+ifdef CONFIG_MACH_ASUS_ZS673KS
 	ifdef CONFIG_TUXERA_USERDEBUG
 		obj-y				+= tuxera/zs673ks/exfat/userdebug/
 		obj-y				+= tuxera/zs673ks/ntfs/userdebug/
@@ -220,7 +220,7 @@ ifeq ($(ASUS_BUILD_PROJECT),ZS673KS)
 endif
 
 #Tuxera
-ifeq ($(ASUS_BUILD_PROJECT),PICASSO)
+ifdef CONFIG_MACH_ASUS_PICASSO
 	ifdef CONFIG_TUXERA_USERDEBUG
 		obj-y				+= tuxera/zs675kw/exfat/userdebug/
 		obj-y				+= tuxera/zs675kw/ntfs/userdebug/

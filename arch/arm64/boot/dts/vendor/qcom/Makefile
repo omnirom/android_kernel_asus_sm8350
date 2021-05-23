@@ -9,7 +9,7 @@ ifneq ($(CONFIG_ARCH_QTI_VM), y)
 ifeq ($(CONFIG_BUILD_ARM64_DT_OVERLAY),y)
 
 # +++ ASUS_BSP : add for asus dtbo
-ifneq (,$(filter ZS673KS,$(ASUS_BUILD_PROJECT)))
+ifdef CONFIG_MACH_ASUS_ZS673KS
 $(warning build dtbo for ZS673KS...)
 
 dtbo-$(CONFIG_ARCH_LAHAINA) += \
@@ -30,7 +30,7 @@ ZS673KS-ER2-overlay.dtbo-base := lahaina.dtb lahaina-v2.dtb lahaina-v2.1.dtb
 ZS673KS-PR1-overlay.dtbo-base := lahaina.dtb lahaina-v2.dtb lahaina-v2.1.dtb
 ZS673KS-MP-overlay.dtbo-base := lahaina.dtb lahaina-v2.dtb lahaina-v2.1.dtb
 
-else ifneq (,$(filter PICASSO,$(ASUS_BUILD_PROJECT)))
+else ifdef CONFIG_MACH_ASUS_PICASSO
 
 dtbo-$(CONFIG_ARCH_LAHAINA) += \
                 PICASSO-EVB-overlay.dtbo \
@@ -51,7 +51,7 @@ PICASSO-PR1-overlay.dtbo-base := lahaina.dtb lahaina-v2.dtb lahaina-v2.1.dtb
 PICASSO-PR2-overlay.dtbo-base := lahaina.dtb lahaina-v2.dtb lahaina-v2.1.dtb
 PICASSO-MP-overlay.dtbo-base := lahaina.dtb lahaina-v2.dtb lahaina-v2.1.dtb
 
-else ifneq (,$(filter SAKE,$(ASUS_BUILD_PROJECT)))
+else ifdef CONFIG_MACH_ASUS_SAKE
 $(warning build dtbo for SAKE...)
 
 dtbo-$(CONFIG_ARCH_LAHAINA) += \
@@ -73,7 +73,7 @@ SAKE-ER1-overlay.dtbo-base := lahaina.dtb lahaina-v2.dtb lahaina-v2.1.dtb
 SAKE-ER2-overlay.dtbo-base := lahaina.dtb lahaina-v2.dtb lahaina-v2.1.dtb
 SAKE-PR-overlay.dtbo-base := lahaina.dtb lahaina-v2.dtb lahaina-v2.1.dtb
 SAKE-MP-overlay.dtbo-base := lahaina.dtb lahaina-v2.dtb lahaina-v2.1.dtb	
-else ifneq (,$(filter VODKA,$(ASUS_BUILD_PROJECT)))
+else ifdef CONFIG_MACH_ASUS_VODKA
 $(warning build dtbo for VODKA...)
 
 dtbo-$(CONFIG_ARCH_LAHAINA) += \
