@@ -22,7 +22,8 @@
 *.elf
 *.gcno
 *.gz
-*.i
+#*.i
+!drivers/input/touchscreen/Vodka_TP_3518U/include/firmware/*.bin
 *.ko
 *.lex.c
 *.ll
