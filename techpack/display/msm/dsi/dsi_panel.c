@@ -637,6 +637,7 @@ static int dsi_panel_update_backlight(struct dsi_panel *panel,
 	DSI_LOG("set bl=%d\n", bl_lvl);
 	dsi_anakin_record_backlight(bl_lvl);
 	dsi_zf8_record_backlight(bl_lvl);
+	dsi_zf8_set_dimming_smooth(panel, bl_lvl);
 
 	// always 0 except project Anakin & Picasso
 	if (panel->allow_panel_fod_hbm == 1)
@@ -1848,6 +1849,7 @@ const char *cmd_set_prop_map[DSI_CMD_SET_MAX] = {
 	"qcom,mdss-dsi-dimming-speed-1frame-command",
 	"qcom,mdss-dsi-dimming-speed-20frame-command",
 	"qcom,mdss-dsi-dimming-smooth-command",
+	"qcom,mdss-dsi-aod-off-command",
 	/* ASUS BSP Display, refer to panel dtsi --- */
 };
 
@@ -1895,6 +1897,7 @@ const char *cmd_set_state_map[DSI_CMD_SET_MAX] = {
 	"qcom,mdss-dsi-dimming-speed-1frame-command-state",
 	"qcom,mdss-dsi-dimming-speed-20frame-command-state",
 	"qcom,mdss-dsi-dimming-smooth-command-state",
+	"qcom,mdss-dsi-aod-off-command-state",
 	/* ASUS BSP Display, refer to panel dtsi --- */
 };
 
@@ -4505,9 +4508,32 @@ int dsi_panel_set_nolp(struct dsi_panel *panel)
 		panel->has_enter_aod_before = true;
 	}
 	
-	panel->aod_state = false;
-
 exit:
+
+	panel->aod_state = false;
+	
+#if defined ASUS_SAKE_PROJECT || defined ASUS_VODKA_PROJECT
+	// to avoid panel in display off
+	if (panel->fod_in_doze) {
+		DSI_LOG("fod_in_doze (%d), set display on\n", panel->fod_in_doze);
+		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_AOD_OTHER);
+#if defined ASUS_VODKA_PROJECT
+		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_FOD_HBM_ON);
+#else
+		if(1 == g_lcd_stage_id) {
+			rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_FOD_HBM_ON);
+		}else {
+			rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_FOD_ER2_HBM_ON);
+		}
+#endif
+
+		if (rc)
+			DSI_ERR("[%s] failed to send DSI_CMD_SET_POST_FOD_HBM_ON cmd, rc=%d\n",panel->name, rc);
+		
+		panel->fod_in_doze = false;
+	}
+#endif
+
 	mutex_unlock(&panel->panel_lock);
 	return rc;
 }
