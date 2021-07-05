@@ -48,6 +48,7 @@ gesture id
 #define GESTURE_TYPE             "driver/gesture_type"
 #define DCLICK                   "driver/dclick"
 #define SWIPEUP                  "driver/swipeup"
+#define FOD                      "driver/fod_event"
 /*****************************************************************************
 * Global variable or extern global variabls/functions
 *****************************************************************************/
@@ -444,6 +445,28 @@ static ssize_t asus_gesture_proc_dclick_write(struct file *filp, const char *buf
 	return len;
 }
 
+static ssize_t asus_proc_fod_write(struct file *filp, const char *buff, size_t len, loff_t *off) {
+	char messages[256];
+	memset(messages, 0, sizeof(messages));
+	struct fts_ts_data *ts_data = fts_data;
+
+	if (len > 256)
+		len = 256;
+	if (copy_from_user(messages, buff, len))
+		return -EFAULT;
+
+	if ((strncmp(messages, "33", 2) == 0)) {
+		if (fts_data->input_dev != NULL) {
+			FTS_INFO("[FOD Event] Sending fingerprint fod wake up event = %s\n", messages);
+			asus_gesture_report(ts_data, 33);
+		}
+	} else {
+		FTS_ERROR("[FOD Event] Received unknown event = %d\n", messages);
+	}
+
+	return len;
+}
+
 static ssize_t asus_gesture_proc_swipeup_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
 {
 	int len = 0;
@@ -451,7 +474,6 @@ static ssize_t asus_gesture_proc_swipeup_read(struct file *file, char __user *bu
 	char *buff = NULL;
 
 	FTS_FUNC_ENTER();
-	
 	buff = kzalloc(100, GFP_KERNEL);
 	if (!buff)
 		return -ENOMEM;
@@ -496,6 +518,10 @@ static struct file_operations asus_gesture_proc_dclick_ops = {
 static struct file_operations asus_gesture_proc_swipeup_ops = {
 	.write = asus_gesture_proc_swipeup_write,
 	.read  = asus_gesture_proc_swipeup_read,
+};
+
+static struct file_operations asus_gesture_proc_fod_ops = {
+	.write = asus_proc_fod_write,
 };
 
 int asus_gesture_init(struct fts_ts_data *ts_data)
@@ -544,10 +570,10 @@ int asus_gesture_init(struct fts_ts_data *ts_data)
     ts_data->dclick_mode = 0;
     ts_data->swipeup_mode = 0;
     ts_data->music_control = 0;
-    
     proc_create(GESTURE_TYPE, 0666, NULL, &asus_gesture_proc_type_ops);
     proc_create(DCLICK, 0666, NULL, &asus_gesture_proc_dclick_ops);
     proc_create(SWIPEUP, 0666, NULL, &asus_gesture_proc_swipeup_ops);
+    proc_create(FOD, 0222, NULL, &asus_gesture_proc_fod_ops);
 
     FTS_FUNC_EXIT();
     return 0;
