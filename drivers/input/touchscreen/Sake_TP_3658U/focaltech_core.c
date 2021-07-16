@@ -1611,6 +1611,7 @@ static int drm_notifier_callback(struct notifier_block *self,
                     ts_data->irq_off = ENABLE;
                     fts_irq_disable();
                     FTS_INFO("Proximity on and on phone call, disable irq not suspend");
+                    fts_release_all_finger();
                 }
             }
             if (ts_data->irq_off != ENABLE) {
