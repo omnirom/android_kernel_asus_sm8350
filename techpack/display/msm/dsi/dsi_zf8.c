@@ -1127,7 +1127,7 @@ void dsi_zf8_record_backlight(u32 bl_lvl)
 		
 		if(g_display->panel->panel_last_backlight == 248) {
 			if(g_display->panel->aod_mode == 1)
-				g_display->panel->panel_last_backlight = 4;
+				g_display->panel->panel_last_backlight = 14;
 			else if(g_display->panel->aod_mode == 2)
 				g_display->panel->panel_last_backlight = 64;
 			else 
@@ -1136,7 +1136,7 @@ void dsi_zf8_record_backlight(u32 bl_lvl)
 		
 		//DSI_LOG("AOD last_backlight = %d \n", g_display->panel->panel_last_backlight);
 		DSI_LOG("Will enter AOD Mode !\n");
-		if(g_display->panel->panel_last_backlight > 4) {
+		if(g_display->panel->panel_last_backlight > 14) {
 			
 #if defined ASUS_SAKE_PROJECT
 			if(1 == g_lcd_stage_id) {
@@ -1153,7 +1153,7 @@ void dsi_zf8_record_backlight(u32 bl_lvl)
 			DSI_LOG("set aod_mode 2 \n");
 			g_display->panel->aod_mode = 2;
 			
-	     } else if (g_display->panel->panel_last_backlight == 4) {
+	     } else if (g_display->panel->panel_last_backlight == 14) {
 #if defined ASUS_SAKE_PROJECT
 			if(1 == g_lcd_stage_id) {
 					rc = dsi_zf8_tx_cmd_set(g_display->panel, DSI_CMD_SET_AOD_LOW);
@@ -1169,7 +1169,7 @@ void dsi_zf8_record_backlight(u32 bl_lvl)
 			DSI_LOG("set aod_mode 1 \n");
 			g_display->panel->aod_mode = 1;
 	    }
-		// for non 4 / 64 bl && aod on state, prevent display keep off
+		// for non 14 / 64 bl && aod on state, prevent display keep off
 		else if(g_display->panel->aod_state){
 			DSI_LOG("Send DSI_CMD_SET_AOD_OTHER !\n");
 			rc = dsi_zf8_tx_cmd_set(g_display->panel, DSI_CMD_SET_AOD_OTHER);
