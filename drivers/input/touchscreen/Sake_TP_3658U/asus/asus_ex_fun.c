@@ -7,6 +7,8 @@
 *****************************************************************************/
 #define GLOVE                  "driver/glove"
 #define FPXY                   "driver/fp_xy"
+#define FP_MODE                "driver/fts_fp_mode"
+#define FP_MODE_CTRL           "driver/fts_fp_ctrl_mode"
 /*****************************************************************************
 * 2.Global variable or extern global variabls/functions
 *****************************************************************************/
@@ -161,94 +163,6 @@ static ssize_t fts_touch_status_show(
 /*
  * FingerPrinter related
  */
-static ssize_t fts_fp_mode_show(
-    struct device *dev, struct device_attribute *attr, char *buf)
-{
-    int count = 0;
-   
-    count = snprintf(buf + count, PAGE_SIZE, "Notify FP:%s\n",
-                     fts_data->fp_enable ? "On" : "Off");
-
-    return count;
-}
-
-static ssize_t fts_fp_mode_store(
-    struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
-{
-    // listen persist.vendor.asus.fp.wakeup
-    if (FTS_SYSFS_ECHO_ON(buf)) {
-        if (!fts_data->fp_enable) {
-            FTS_DEBUG("Notify FP enable");
-            fts_data->fp_enable = ENABLE;
-        }
-    } else if (FTS_SYSFS_ECHO_OFF(buf)) {
-        if (fts_data->fp_enable) {
-            FTS_DEBUG("Notify FP disable");
-            fts_data->fp_enable = DISABLE;
-            fts_data->next_resume_isaod = false;
-        }
-    }
-
-    FTS_DEBUG("Notify FP:%d", fts_data->fp_enable);
-    return count;
-}
-
-static ssize_t fts_fp_ctrl_mode_show(
-    struct device *dev, struct device_attribute *attr, char *buf)
-{
-    return sprintf(buf, "%d \n", fts_data->fp_report_type);
-}
-
-static ssize_t fts_fp_ctrl_mode_store(
-    struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
-{
-  // listen vendor.asus.touch_control_fod
-	if (buf[0] == '0') {
-		fts_data->fp_report_type = 0;
-		FTS_DEBUG("fp_report_type = 0");
-		fts_data->next_resume_isaod = false;
-		if ((fts_data->display_state == 1) && fts_data->suspended) {
-		    FTS_INFO("display on , touch not resume , resume touch");
-		    resume_touch(true);
-		}
-	} else if (buf[0] == '1') {
-		fts_data->fp_report_type = 1;
-		FTS_DEBUG("fp_report_type = 1");
-	} else if (buf[0] == '2') {
-		fts_data->fp_report_type = 2;
-		FTS_DEBUG("fp_report_type = 2");
-		if (fts_data->next_resume_isaod) {
-		    fts_data->next_resume_isaod = false;
-		    FTS_INFO("FOD speedup, finger not leave panel");
-		    if (fts_data->suspended) {
-		      FTS_INFO("touch not resume , resume touch");
-		      resume_touch(true);
-		    }
-		    if (fts_data->auth_complete == 1) {
-			FTS_INFO("FP already auth success , reset fp_report_type to 0");
-			fts_data->fp_report_type = 0;
-			msleep(100);
-		        FTS_INFO("Notify FP finger up, KEY_U");
-			input_report_key(fts_data->input_dev, KEY_U,1);
-			input_sync(fts_data->input_dev);
-			input_report_key(fts_data->input_dev, KEY_U,0);
-			input_sync(fts_data->input_dev);
-			fts_release_all_finger();
-		    }
-		} else {
-		    if (fts_data->display_state == 1) {
-			FTS_INFO("FOD speedup ,FOD servicee request touch resume");
-			fts_data->next_resume_isaod = false;
-			if (fts_data->suspended) {
-			  FTS_INFO("touch not resume , resume touch");
-			  resume_touch(true);
-			}
-		    }
-		}
-	}
-
-	return count;
-}
 
 static ssize_t fts_aod_ctrl_mode_show(
     struct device *dev, struct device_attribute *attr, char *buf)
@@ -428,6 +342,128 @@ static ssize_t asus_ex_proc_glove_write(struct file *filp, const char *buff, siz
 	return len;
 }
 
+static ssize_t asus_ex_proc_fp_mode_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
+{
+	int len = 0;
+	ssize_t ret = 0;
+	char *buff = NULL;
+	struct fts_ts_data *ts_data = fts_data;
+
+	buff = kzalloc(100, GFP_KERNEL);
+	if (!buff)
+		return -ENOMEM;
+
+	len += sprintf(buff, "Notify FP:%s\n", ts_data->fp_enable);
+	ret = simple_read_from_buffer(buf, count, ppos, buff, len);
+	kfree(buff);
+
+	return ret;
+}
+
+static ssize_t asus_ex_proc_fp_mode_write(struct file *filp, const char *buff, size_t len, loff_t *off)
+{
+	char messages[256];
+	memset(messages, 0, sizeof(messages));
+	struct fts_ts_data *ts_data = fts_data;
+
+	if (len > 256)
+		len = 256;
+	if (copy_from_user(messages, buff, len))
+		return -EFAULT;
+
+    if (strncmp(messages, "0", 1) == 0) {
+        if (ts_data->fp_enable) {
+            FTS_DEBUG("Notify FP disable");
+            ts_data->fp_enable = DISABLE;
+            ts_data->next_resume_isaod = false;
+        }
+    } else {
+        if (!ts_data->fp_enable) {
+            FTS_DEBUG("Notify FP enable");
+            ts_data->fp_enable = ENABLE;
+        }
+    }
+
+    FTS_DEBUG("Notify FP:%d", ts_data->fp_enable);
+    return len;
+}
+
+static ssize_t asus_ex_proc_fp_ctrl_mode_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
+{
+	int len = 0;
+	ssize_t ret = 0;
+	char *buff = NULL;
+	struct fts_ts_data *ts_data = fts_data;
+
+	buff = kzalloc(100, GFP_KERNEL);
+	if (!buff)
+		return -ENOMEM;
+
+	len += sprintf(buff, "%d \n", ts_data->fp_report_type);
+	ret = simple_read_from_buffer(buf, count, ppos, buff, len);
+	kfree(buff);
+
+	return ret;
+}
+
+static ssize_t asus_ex_proc_fp_ctrl_mode_write(struct file *filp, const char *buff, size_t len, loff_t *off)
+{
+	char messages[256];
+	memset(messages, 0, sizeof(messages));
+	struct fts_ts_data *ts_data = fts_data;
+
+	if (len > 256)
+		len = 256;
+	if (copy_from_user(messages, buff, len))
+		return -EFAULT;
+
+    if (strncmp(messages, "0", 1) == 0) {
+		ts_data->fp_report_type = 0;
+		FTS_DEBUG("fp_report_type = 0");
+		ts_data->next_resume_isaod = false;
+		if ((ts_data->display_state == 1) && ts_data->suspended) {
+		    FTS_INFO("display on , touch not resume , resume touch");
+		    resume_touch(true);
+		}
+	} else if (strncmp(messages, "1", 1) == 0) {
+		ts_data->fp_report_type = 1;
+		FTS_DEBUG("fp_report_type = 1");
+	} else if (strncmp(messages, "2", 1) == 0) {
+		ts_data->fp_report_type = 2;
+		FTS_DEBUG("fp_report_type = 2");
+		if (ts_data->next_resume_isaod) {
+		    ts_data->next_resume_isaod = false;
+		    FTS_INFO("FOD speedup, finger not leave panel");
+		    if (ts_data->suspended) {
+		      FTS_INFO("touch not resume , resume touch");
+		      resume_touch(true);
+		    }
+		    if (ts_data->auth_complete == 1) {
+			FTS_INFO("FP already auth success , reset fp_report_type to 0");
+			ts_data->fp_report_type = 0;
+			msleep(100);
+		        FTS_INFO("Notify FP finger up, KEY_U");
+			input_report_key(ts_data->input_dev, KEY_U,1);
+			input_sync(ts_data->input_dev);
+			input_report_key(ts_data->input_dev, KEY_U,0);
+			input_sync(ts_data->input_dev);
+			fts_release_all_finger();
+		    }
+		} else {
+		    if (ts_data->display_state == 1) {
+			FTS_INFO("FOD speedup ,FOD servicee request touch resume");
+			ts_data->next_resume_isaod = false;
+			if (ts_data->suspended) {
+			  FTS_INFO("touch not resume , resume touch");
+			  resume_touch(true);
+			}
+		    }
+		}
+	}
+
+	return len;
+}
+
 static struct file_operations asus_ex_proc_glove_ops = {
 	.write = asus_ex_proc_glove_write,
 	.read  = asus_ex_proc_glove_read,
@@ -437,9 +473,17 @@ static struct file_operations asus_ex_proc_fpxy_ops = {
 	.read  = asus_ex_proc_fpxy_read,
 };
 
+static struct file_operations asus_ex_proc_fp_mode_ops = {
+	.write = asus_ex_proc_fp_mode_write,
+	.read  = asus_ex_proc_fp_mode_read,
+};
+
+static struct file_operations asus_ex_proc_fp_ctrl_mode_ops = {
+	.write = asus_ex_proc_fp_ctrl_mode_write,
+	.read  = asus_ex_proc_fp_ctrl_mode_read,
+};
+
 static DEVICE_ATTR(touch_status, S_IRUGO | S_IWUSR, fts_touch_status_show, NULL);
-static DEVICE_ATTR(fts_fp_mode, S_IRUGO | S_IWUSR, fts_fp_mode_show, fts_fp_mode_store);
-static DEVICE_ATTR(fts_fp_ctrl_mode, S_IRUGO | S_IWUSR, fts_fp_ctrl_mode_show, fts_fp_ctrl_mode_store);
 static DEVICE_ATTR(fts_aod_ctrl_mode, S_IRUGO | S_IWUSR, fts_aod_ctrl_mode_show, fts_aod_ctrl_mode_store);
 static DEVICE_ATTR(fts_phone_state, S_IRUGO | S_IWUSR, fts_phonecall_state_show, fts_phonecall_state_store);
 static DEVICE_ATTR(fp_auth_status, S_IRUGO | S_IWUSR, fp_auth_status_show, fp_auth_status_store);
@@ -448,8 +492,6 @@ static DEVICE_ATTR(fp_area, S_IRUGO | S_IWUSR, fp_area_show, fp_area_store);
 /* add your attr in here*/
 static struct attribute *fts_attributes[] = {
     &dev_attr_touch_status.attr,
-    &dev_attr_fts_fp_mode.attr,
-    &dev_attr_fts_fp_ctrl_mode.attr,
     &dev_attr_fts_aod_ctrl_mode.attr,
     &dev_attr_fts_phone_state.attr,
     &dev_attr_fp_auth_status.attr,
@@ -476,6 +518,8 @@ int asus_create_sysfs(struct fts_ts_data *ts_data)
 
     proc_create(GLOVE, 0666, NULL, &asus_ex_proc_glove_ops);
     proc_create(FPXY, 0777, NULL, &asus_ex_proc_fpxy_ops);
+    proc_create(FP_MODE, 0666, NULL, &asus_ex_proc_fp_mode_ops);
+    proc_create(FP_MODE_CTRL, 0666, NULL, &asus_ex_proc_fp_ctrl_mode_ops);
     
     ts_data->fp_enable = 0;
     ts_data->fp_report_type = 0;
