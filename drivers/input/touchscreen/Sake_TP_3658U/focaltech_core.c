@@ -1626,17 +1626,10 @@ static int drm_notifier_callback(struct notifier_block *self,
     case DRM_PANEL_BLANK_LP:
         FTS_INFO("DRM_PANEL_BLANK_LP,Display resume into LP1/LP2");
 	ts_data->display_state = 2;
-	ts_data->next_resume_isaod = false;
-        ts_data->fp_filter = false;
-        if (!ts_data->suspended) {
-            FTS_INFO("Display AOD mode, suspend touch");
-            if (ts_data->irq_off == ENABLE) {
-                ts_data->irq_off = DISABLE;
-                fts_irq_enable();
-            }
-            cancel_work_sync(&fts_data->resume_work);
-            fts_ts_suspend(ts_data->dev);
-        }
+	if (fts_data->suspended) {
+		    FTS_INFO("display on , touch not resume , resume touch");
+		    resume_touch(true);
+		}
 	break;
     case DRM_PANEL_BLANK_FPS_CHANGE:
 //        FTS_INFO("DRM_PANEL_BLANK_FPS_CHANGE , refers rate %d",evdata->refresh_rate);
