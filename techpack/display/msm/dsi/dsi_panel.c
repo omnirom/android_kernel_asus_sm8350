@@ -4470,7 +4470,7 @@ int dsi_panel_set_nolp(struct dsi_panel *panel)
 
 	if(!panel->has_enter_aod_before)  {
 		DSI_LOG(" has_enter_aod_before is false , send AOD OTHER & DSI_CMD_SET_TIMING_SWITCH \n");
-		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_AOD_OTHER);
+		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_AOD_LOW);
 		if (rc) {
 			DSI_ERR("[%s] failed to send DSI_CMD_SET_AOD_OTHER cmd, rc=%d\n",panel->name, rc);
 		}else {
@@ -4525,7 +4525,7 @@ exit:
 	// to avoid panel in display off
 	if (panel->fod_in_doze) {
 		DSI_LOG("fod_in_doze (%d), set display on\n", panel->fod_in_doze);
-		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_AOD_OTHER);
+		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_AOD_LOW);
 #if defined ASUS_VODKA_PROJECT
 		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_FOD_HBM_ON);
 #else

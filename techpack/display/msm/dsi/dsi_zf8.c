@@ -406,15 +406,6 @@ static int dsi_zf8_set_fod_hbm(struct dsi_panel *panel, bool enable)
 
 	DSI_LOG("Will Set FOD HBM ON\n");
 
-	// to aviod ghbm without mask
-	if (panel->fod_in_doze) {
-		DSI_LOG("set display off first\n");
-		rc = dsi_zf8_tx_cmd_set(panel, DSI_CMD_AOD_OFF);
-		if (rc)
-			DSI_LOG("[%s] failed to send DSI_CMD_SET_LP1 cmd, rc=%d\n",
-					   panel->name, rc);
-	}else {
-		DSI_LOG("set display on directly\n");
 #if defined ASUS_SAKE_PROJECT	
 		if(1 == g_lcd_stage_id) {
 			rc = dsi_zf8_tx_cmd_set(panel, DSI_CMD_SET_FOD_HBM_ON);
@@ -425,8 +416,6 @@ static int dsi_zf8_set_fod_hbm(struct dsi_panel *panel, bool enable)
 #else
 		rc = dsi_zf8_tx_cmd_set(panel, DSI_CMD_SET_FOD_HBM_ON);
 #endif
-	}
-	
 	if (rc)
 		pr_err("[Display][%s] failed to send DSI_CMD_SET_FOD_HBM_ON cmd, rc=%d\n",
 			panel->name, rc);
@@ -1034,7 +1023,7 @@ void dsi_zf8_frame_commit_cnt(struct drm_crtc *crtc)
 		}
 	}*/
 
-	if(g_display->panel->aod_state && display_commit_cnt < 1 && g_display->panel->aod_first_time) {
+	if(g_display->panel->aod_state && display_commit_cnt < 1) {
 		DSI_LOG("AOD notification case restore bl = %d\n", g_display->panel->panel_last_backlight);
 		dsi_zf8_restore_backlight();
 		g_display->panel->aod_first_time = false;
@@ -1153,7 +1142,7 @@ void dsi_zf8_record_backlight(u32 bl_lvl)
 			DSI_LOG("set aod_mode 2 \n");
 			g_display->panel->aod_mode = 2;
 			
-	     } else if (g_display->panel->panel_last_backlight == 4) {
+	     } else if (g_display->panel->panel_last_backlight <= 4) {
 #if defined ASUS_SAKE_PROJECT
 			if(1 == g_lcd_stage_id) {
 					rc = dsi_zf8_tx_cmd_set(g_display->panel, DSI_CMD_SET_AOD_LOW);
@@ -1172,7 +1161,7 @@ void dsi_zf8_record_backlight(u32 bl_lvl)
 		// for non 4 / 64 bl && aod on state, prevent display keep off
 		else if(g_display->panel->aod_state){
 			DSI_LOG("Send DSI_CMD_SET_AOD_OTHER !\n");
-			rc = dsi_zf8_tx_cmd_set(g_display->panel, DSI_CMD_SET_AOD_OTHER);
+			rc = dsi_zf8_tx_cmd_set(g_display->panel, DSI_CMD_SET_AOD_LOW);
 			g_display->panel->has_enter_aod_before = false;
 			g_display->panel->aod_mode = 0;
 		}
@@ -1279,7 +1268,7 @@ void zf8_atomic_set_spot_status(int type)
 		DSI_LOG("commit FOD spot to panel --- \n");
 
 		if (g_display->panel->fod_in_doze) {
-				rc = dsi_zf8_tx_cmd_set(g_display->panel, DSI_CMD_SET_AOD_OTHER);		
+				rc = dsi_zf8_tx_cmd_set(g_display->panel, DSI_CMD_SET_AOD_LOW);		
 #if defined ASUS_SAKE_PROJECT
 				if(1 == g_lcd_stage_id) {
 					rc = dsi_zf8_tx_cmd_set(g_display->panel, DSI_CMD_SET_FOD_HBM_ON);
