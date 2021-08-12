@@ -4435,6 +4435,9 @@ int dsi_panel_set_lp2(struct dsi_panel *panel)
 		DSI_ERR("[%s] failed to send DSI_CMD_SET_LP2 cmd, rc=%d\n",
 		       panel->name, rc);
 
+	panel->aod_state = true;
+	panel->aod_first_time = false;
+
 //Bottom USB RT1715 +++
 #if defined ASUS_ZS673KS_PROJECT
 	rt_send_screen_suspend();
@@ -4468,11 +4471,11 @@ int dsi_panel_set_nolp(struct dsi_panel *panel)
 		dsi_pwr_panel_regulator_mode_set(&panel->power_info,
 			"ibb", REGULATOR_MODE_NORMAL);
 
-	if(!panel->has_enter_aod_before)  {
-		DSI_LOG(" has_enter_aod_before is false , send AOD OTHER & DSI_CMD_SET_TIMING_SWITCH \n");
-		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_AOD_OTHER);
+	/*if(!panel->has_enter_aod_before)  {
+		DSI_LOG(" has_enter_aod_before is false , send AOD E & DSI_CMD_SET_TIMING_SWITCH \n");
+		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_AOD_ER2_LOW);
 		if (rc) {
-			DSI_ERR("[%s] failed to send DSI_CMD_SET_AOD_OTHER cmd, rc=%d\n",panel->name, rc);
+			DSI_ERR("[%s] failed to send DSI_CMD_SET_AOD_ER2_LOW cmd, rc=%d\n",panel->name, rc);
 		}else {
 			rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_TIMING_SWITCH);
 			if (rc) {
@@ -4480,7 +4483,7 @@ int dsi_panel_set_nolp(struct dsi_panel *panel)
 			}
 		}
 		goto exit;
-	}
+	}*/
 		
 	DSI_LOG("Will enter NOLP mode !\n");
 	
@@ -4523,9 +4526,9 @@ exit:
 	
 #if defined ASUS_SAKE_PROJECT || defined ASUS_VODKA_PROJECT
 	// to avoid panel in display off
-	if (panel->fod_in_doze) {
+	if (panel->fod_in_doze || panel->aod_state) {
 		DSI_LOG("fod_in_doze (%d), set display on\n", panel->fod_in_doze);
-		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_AOD_OTHER);
+		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_FOD_ER2_HBM_ON);
 #if defined ASUS_VODKA_PROJECT
 		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_FOD_HBM_ON);
 #else

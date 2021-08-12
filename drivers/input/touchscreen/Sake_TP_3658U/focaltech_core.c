@@ -1619,6 +1619,9 @@ static int drm_notifier_callback(struct notifier_block *self,
                 cancel_work_sync(&fts_data->resume_work);
                 ts_data->fp_filter = false;
                 fts_ts_suspend(ts_data->dev);
+            } else if (fts_data->suspended) {
+                FTS_INFO("touch not resume , resume touch");
+                resume_touch(true);
             }
         } else if (DRM_PANEL_EVENT_BLANK == event) {
 //            FTS_INFO("suspend: event = %lu, not care", event);
@@ -1628,7 +1631,7 @@ static int drm_notifier_callback(struct notifier_block *self,
         FTS_INFO("DRM_PANEL_BLANK_LP,Display resume into LP1/LP2");
 	ts_data->display_state = 2;
 	ts_data->next_resume_isaod = false;
-        ts_data->fp_filter = false;
+        //ts_data->fp_filter = false;
         if (!ts_data->suspended) {
             FTS_INFO("Display AOD mode, suspend touch");
             if (ts_data->irq_off == ENABLE) {
