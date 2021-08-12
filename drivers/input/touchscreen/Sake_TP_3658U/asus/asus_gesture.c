@@ -121,10 +121,14 @@ void asus_gesture_report(struct fts_ts_data *ts_data, int gesture_id)
 	  write_fp_xy(ts_data);
           proxy_skip = true;
 	}
-	if ((ts_data->aod_enable == ENABLE) && (ts_data-> fp_report_type==0)) {  // AOD only
-	  FTS_INFO("key L in aod");
-	  gesture = KEY_GESTURE_L;
-	  proxy_skip = false;
+	if ((ts_data->fp_enable == 1) && (ts_data-> fp_report_type==3)) {  // AOD only
+	  FTS_INFO("key F in aod");
+	  zf8_drm_notify(ASUS_NOTIFY_FOD_TOUCHED, 1);
+	  ts_data->next_resume_isaod = true;
+	  ts_data->fp_filter = true;
+	  gesture = KEY_GESTURE_F;
+	  write_fp_xy(ts_data);
+          proxy_skip = true;
 	}
         break;
     case GESTURE_U:
@@ -135,10 +139,12 @@ void asus_gesture_report(struct fts_ts_data *ts_data, int gesture_id)
 	  ts_data->fp_filter = false;
 	  proxy_skip = true;
 	}
-	if ((ts_data->aod_enable == ENABLE) && (ts_data-> fp_report_type==0)) {  // AOD only
-	  FTS_INFO("key L in aod");
-	  gesture = KEY_GESTURE_L;
-	  proxy_skip = false;
+	if ((ts_data->fp_enable == 1) && (ts_data-> fp_report_type==3)) {  // AOD only
+	  FTS_INFO("key U in aod");
+	  gesture = KEY_GESTURE_U;
+	  ts_data->next_resume_isaod = false;
+	  ts_data->fp_filter = false;
+	  proxy_skip = true;
 	}
 	break;
     case GESTURE_L:

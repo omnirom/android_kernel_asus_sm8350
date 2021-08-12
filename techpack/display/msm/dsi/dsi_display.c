@@ -1307,6 +1307,7 @@ int dsi_display_set_power(struct drm_connector *connector,
 
 		break;
 	case SDE_MODE_DPMS_OFF:
+	DSI_LOG("doze bye bye\n");
 	default:
 		return rc;
 	}

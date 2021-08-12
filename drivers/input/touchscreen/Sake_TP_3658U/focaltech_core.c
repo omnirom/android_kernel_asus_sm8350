@@ -548,9 +548,38 @@ static int fts_input_report_b(struct fts_ts_data *data)
             if (data->fp_filter && (events[i].id == fp_key_i)) {
                 if (fp_position[0] <= events[i].x && events[i].x <= fp_position[1] &&
                     fp_position[2] <= events[i].y && events[i].y <= fp_position[3]) {
+					FTS_DEBUG("[B](id,x,y,p,rate)(%d,%d,%d,%d,%d) DOWN!",
+                          events[i].id,
+                          events[i].x, events[i].y,
+                          events[i].p, events[i].rate);
+                    if (events[i].p < data->fp_mini) {
+                        FTS_INFO("Finger %d area %d too small , KEY O",events[i].id,events[i].p);
+                        input_report_key(data->input_dev, KEY_O,1);
+                        input_sync(data->input_dev);
+                        input_report_key(data->input_dev, KEY_O,0);
+                        input_sync(data->input_dev);
+                        data->fp_x = events[i].x;
+                        data->fp_y = events[i].y;
+                        fp_press = 1;
+                        fp_key_i = events[i].id;
+                        data->fp_filter = true;
+                    } else {
+                        FTS_INFO("Finger %d down at FP area, KEY F",events[i].id);
+                        input_report_key(data->input_dev, KEY_F,1);
+                        input_sync(data->input_dev);
+                        input_report_key(data->input_dev, KEY_F,0);
+                        input_sync(data->input_dev);
+                        /* ASUS BSP Display +++ */
+                        zf8_drm_notify(ASUS_NOTIFY_FOD_TOUCHED, 1);
+                        data->fp_x = events[i].x;
+                        data->fp_y = events[i].y;
+                        fp_press = 2;
+                        fp_key_i = events[i].id;
+                        data->fp_filter = true;
+                    }
                     //ignore , icon position not report finger down
                 } else {
-                    if (data-> fp_report_type == 2) {
+                    if (data-> fp_report_type == 3) {
                         input_mt_report_slot_state(data->input_dev, MT_TOOL_FINGER, true);
                         input_report_abs(data->input_dev, ABS_MT_TOUCH_MAJOR, events[i].p);
                         input_report_abs(data->input_dev, ABS_MT_POSITION_X, events[i].x);
@@ -1580,6 +1609,7 @@ static int drm_notifier_callback(struct notifier_block *self,
     switch (*blank) {
     case DRM_PANEL_BLANK_UNBLANK:
         ts_data->display_state = 1;
+        ts_data->fp_report_type = 0;
         if (DRM_PANEL_EARLY_EVENT_BLANK == event) {
             FTS_INFO("DRM_PANEL_BLANK_UNBLANK, Display resume");
         } else if (DRM_PANEL_EVENT_BLANK == event) {
@@ -1602,6 +1632,7 @@ static int drm_notifier_callback(struct notifier_block *self,
         break;
     case DRM_PANEL_BLANK_POWERDOWN:
         ts_data->display_state = 0;
+        ts_data->fp_report_type = 0;
         FTS_INFO("DRM_PANEL_BLANK_POWERDOWN,Display off");
         if (DRM_PANEL_EARLY_EVENT_BLANK == event) {
             ts_data->irq_off = DISABLE;
@@ -1618,25 +1649,51 @@ static int drm_notifier_callback(struct notifier_block *self,
                 cancel_work_sync(&fts_data->resume_work);
                 ts_data->fp_filter = false;
                 fts_ts_suspend(ts_data->dev);
+				FTS_INFO("doze aod fuck");
             }
         } else if (DRM_PANEL_EVENT_BLANK == event) {
+			FTS_INFO("doze aod fuck 2");
 //            FTS_INFO("suspend: event = %lu, not care", event);
         }
         break;
     case DRM_PANEL_BLANK_LP:
         FTS_INFO("DRM_PANEL_BLANK_LP,Display resume into LP1/LP2");
 	ts_data->display_state = 2;
-	ts_data->next_resume_isaod = false;
-        ts_data->fp_filter = false;
+	ts_data->next_resume_isaod = true;
+        ts_data->fp_filter = true;
         if (!ts_data->suspended) {
             FTS_INFO("Display AOD mode, suspend touch");
             if (ts_data->irq_off == ENABLE) {
                 ts_data->irq_off = DISABLE;
                 fts_irq_enable();
+				FTS_INFO("doze aod fuck 3");
             }
             cancel_work_sync(&fts_data->resume_work);
             fts_ts_suspend(ts_data->dev);
         }
+		ts_data->fp_report_type = 3;
+		FTS_INFO("aod next resume 1 %d", fts_data->next_resume_isaod);
+		if (fts_data->next_resume_isaod) {
+			FTS_INFO("aod next resume 2 %d", fts_data->next_resume_isaod);
+		    fts_data->next_resume_isaod = false;
+			FTS_INFO("aod next resume  3 %d", fts_data->next_resume_isaod);
+		    if (fts_data->suspended) {
+		      FTS_INFO("touch not resume , resume touch");
+		      resume_touch(true);
+		    }
+		    if (fts_data->auth_complete == 1) {
+			FTS_INFO("FP already auth success , reset fp_report_type to 0");
+			fts_data->fp_report_type = 0;
+			msleep(100);
+		        FTS_INFO("Notify FP finger up, KEY_U");
+			input_report_key(fts_data->input_dev, KEY_U,1);
+			input_sync(fts_data->input_dev);
+			input_report_key(fts_data->input_dev, KEY_U,0);
+			input_sync(fts_data->input_dev);
+			fts_release_all_finger();
+		    }
+		}
+		FTS_INFO("doze aod fuck 6");
 	break;
     case DRM_PANEL_BLANK_FPS_CHANGE:
 //        FTS_INFO("DRM_PANEL_BLANK_FPS_CHANGE , refers rate %d",evdata->refresh_rate);
