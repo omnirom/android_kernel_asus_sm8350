@@ -1628,14 +1628,13 @@ static int drm_notifier_callback(struct notifier_block *self,
 	ts_data->display_state = 2;
 	ts_data->next_resume_isaod = false;
         ts_data->fp_filter = false;
-        if (!ts_data->suspended) {
-            FTS_INFO("Display AOD mode, suspend touch");
-            if (ts_data->irq_off == ENABLE) {
-                ts_data->irq_off = DISABLE;
-                fts_irq_enable();
+        if (DRM_PANEL_EARLY_EVENT_BLANK == event) {
+            if (ts_data->irq_off != ENABLE) {
+                cancel_work_sync(&fts_data->resume_work);
+                ts_data->fp_filter = false;
+                fts_ts_suspend(ts_data->dev);
             }
-            cancel_work_sync(&fts_data->resume_work);
-            fts_ts_suspend(ts_data->dev);
+        } else if (DRM_PANEL_EVENT_BLANK == event) {
         }
 	break;
     case DRM_PANEL_BLANK_FPS_CHANGE:
