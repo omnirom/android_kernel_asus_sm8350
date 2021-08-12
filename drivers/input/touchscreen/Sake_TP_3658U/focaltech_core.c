@@ -1616,10 +1616,13 @@ static int drm_notifier_callback(struct notifier_block *self,
                 }
             }
             if (ts_data->irq_off != ENABLE) {
-                cancel_work_sync(&fts_data->resume_work);
+                //cancel_work_sync(&fts_data->resume_work);
                 ts_data->fp_filter = false;
                 fts_ts_suspend(ts_data->dev);
-            }
+            } else if (fts_data->suspended) {
+			  FTS_INFO("touch not resume , resume touch");
+			  resume_touch(true);
+			}
         } else if (DRM_PANEL_EVENT_BLANK == event) {
 //            FTS_INFO("suspend: event = %lu, not care", event);
         }
@@ -1633,11 +1636,15 @@ static int drm_notifier_callback(struct notifier_block *self,
             FTS_INFO("Display AOD mode, suspend touch");
             if (ts_data->irq_off == ENABLE) {
                 ts_data->irq_off = DISABLE;
+                fts_release_all_finger();
                 fts_irq_enable();
             }
-            cancel_work_sync(&fts_data->resume_work);
-            fts_ts_suspend(ts_data->dev);
-        }
+            //cancel_work_sync(&fts_data->resume_work);
+            //fts_ts_suspend(ts_data->dev);
+        } else if (fts_data->suspended) {
+			  FTS_INFO("touch not resume , resume touch");
+			  resume_touch(true);
+			}
 	break;
     case DRM_PANEL_BLANK_FPS_CHANGE:
 //        FTS_INFO("DRM_PANEL_BLANK_FPS_CHANGE , refers rate %d",evdata->refresh_rate);

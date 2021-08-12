@@ -4435,6 +4435,8 @@ int dsi_panel_set_lp2(struct dsi_panel *panel)
 		DSI_ERR("[%s] failed to send DSI_CMD_SET_LP2 cmd, rc=%d\n",
 		       panel->name, rc);
 
+	panel->aod_state = true;
+
 //Bottom USB RT1715 +++
 #if defined ASUS_ZS673KS_PROJECT
 	rt_send_screen_suspend();
@@ -4523,7 +4525,7 @@ exit:
 	
 #if defined ASUS_SAKE_PROJECT || defined ASUS_VODKA_PROJECT
 	// to avoid panel in display off
-	if (panel->fod_in_doze) {
+	if (panel->fod_in_doze || panel->aod_state) {
 		DSI_LOG("fod_in_doze (%d), set display on\n", panel->fod_in_doze);
 		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_AOD_OTHER);
 #if defined ASUS_VODKA_PROJECT

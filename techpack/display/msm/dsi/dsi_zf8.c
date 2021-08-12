@@ -407,9 +407,9 @@ static int dsi_zf8_set_fod_hbm(struct dsi_panel *panel, bool enable)
 	DSI_LOG("Will Set FOD HBM ON\n");
 
 	// to aviod ghbm without mask
-	if (panel->fod_in_doze) {
+	if (panel->fod_in_doze || g_display->panel->aod_state) {
 		DSI_LOG("set display off first\n");
-		rc = dsi_zf8_tx_cmd_set(panel, DSI_CMD_AOD_OFF);
+		rc = dsi_zf8_tx_cmd_set(panel, DSI_CMD_SET_FOD_ER2_HBM_ON);
 		if (rc)
 			DSI_LOG("[%s] failed to send DSI_CMD_SET_LP1 cmd, rc=%d\n",
 					   panel->name, rc);
@@ -1278,7 +1278,7 @@ void zf8_atomic_set_spot_status(int type)
 	if (type == 0) {
 		DSI_LOG("commit FOD spot to panel --- \n");
 
-		if (g_display->panel->fod_in_doze) {
+		if (g_display->panel->fod_in_doze || g_display->panel->aod_state) {
 				rc = dsi_zf8_tx_cmd_set(g_display->panel, DSI_CMD_SET_AOD_OTHER);		
 #if defined ASUS_SAKE_PROJECT
 				if(1 == g_lcd_stage_id) {
