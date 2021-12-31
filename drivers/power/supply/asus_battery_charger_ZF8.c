@@ -1435,7 +1435,7 @@ static void handle_notification(struct battery_chg_dev *bcdev, void *data,
                 if(g_Charger_mode){
                     schedule_delayed_work(&asus_set_qc_state_work, msecs_to_jiffies(0));
                 }else{
-                    schedule_delayed_work(&asus_set_qc_state_work, msecs_to_jiffies(2000));
+                    schedule_delayed_work(&asus_set_qc_state_work, msecs_to_jiffies(100));
                 }
             }
             pre_chg_type = Update_charger_type_msg->charger_type;
