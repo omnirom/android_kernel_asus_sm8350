@@ -158,7 +158,3 @@ x509.genkey
 generate_defconfig.txt
 arch/arm64/configs/vendor/lahaina_ALLYES_GKI.config.backup
 
-#
-#Ignoring Android.bp link file
-#
-Android.bp
