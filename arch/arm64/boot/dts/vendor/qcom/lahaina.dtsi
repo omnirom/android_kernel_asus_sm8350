@@ -500,6 +500,15 @@
 		size = <0x0 0x1400000>;
 	};
 
+	ramoops: ramoops@a9000000 {
+		compatible = "removed-dma-pool", "ramoops";
+		reg = <0x0 0xa9000000 0x0 0x200000>;
+		record-size = <0x10000>;
+		console-size = <0x60000>;
+		pmsg-size = <0x10000>;
+		no-map;
+	};
+
 	/* global autoconfigured region for contiguous allocations */
 	linux,cma {
 		compatible = "shared-dma-pool";
