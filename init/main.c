@@ -167,6 +167,18 @@ static int set_hardware_id(char *str)
 	return 0;
 }
 __setup("androidboot.id.stage=", set_hardware_id);
+
+bool g_Charger_mode = false;
+static int set_charger_mode(char *str)
+{
+	g_Charger_mode = !strcmp("charger", str);
+
+	printk("g_Charger_mode = %d\n", g_Charger_mode);
+
+	return 0;
+}
+__setup("androidboot.mode=", set_charger_mode);
+
 #endif
 
 /*
