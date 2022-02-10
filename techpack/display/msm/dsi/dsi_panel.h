@@ -205,6 +205,12 @@ struct dsi_panel_ops {
 	int (*parse_power_cfg)(struct dsi_panel *panel);
 };
 
+#define BRIGHTNESS_ALPHA_PAIR_LEN 2
+struct brightness_alpha_pair {
+	u32 brightness;
+	u32 alpha;
+};
+
 struct dsi_panel {
 	const char *name;
 	const char *type;
@@ -285,6 +291,9 @@ struct dsi_panel {
 	int panel_bl_count; // count for enable dimming
 	int  aod_mode;//0: not aod mode 1: AOD low mode 2: AOD high mode
 	bool dc_fps_change;
+
+	struct brightness_alpha_pair *fod_dim_lut;
+	unsigned int fod_dim_lut_len;
 };
 
 static inline bool dsi_panel_ulps_feature_enabled(struct dsi_panel *panel)
