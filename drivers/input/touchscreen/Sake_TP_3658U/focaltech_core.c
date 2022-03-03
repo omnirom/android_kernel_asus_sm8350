@@ -1747,14 +1747,10 @@ static int drm_notifier_callback(struct notifier_block *self,
                 fts_release_all_finger();
                 fts_irq_enable();
             } else {
-                if (ts_data->next_resume_isaod) {
-                    FTS_INFO("Display resume into AOD, not care");
+                if (fts_data->fp_report_type == 1) {
+                    FTS_INFO("resume into hbm mode");
                 } else {
-                    if (fts_data->fp_report_type == 1) {
-                        FTS_INFO("resume into hbm mode");
-                    } else {
-                        queue_work(fts_data->ts_workqueue, &fts_data->resume_work);
-                    }
+                    queue_work(fts_data->ts_workqueue, &fts_data->resume_work);
                 }
             }
         }
@@ -1785,7 +1781,6 @@ static int drm_notifier_callback(struct notifier_block *self,
     case DRM_PANEL_BLANK_LP:
         FTS_INFO("DRM_PANEL_BLANK_LP,Display resume into LP1/LP2");
 	ts_data->display_state = 2;
-	ts_data->next_resume_isaod = false;
         ts_data->fp_filter = false;
         if (!ts_data->suspended) {
             FTS_INFO("Display AOD mode, suspend touch");

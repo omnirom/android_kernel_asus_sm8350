@@ -99,12 +99,11 @@ void asus_gesture_report(struct fts_ts_data *ts_data, int gesture_id)
     case GESTURE_O:
 	if ((ts_data->fp_enable == 1) && (ts_data-> fp_report_type!=0)) {
 	  gesture = KEY_GESTURE_O;
-	  ts_data->next_resume_isaod = true;
 	  FTS_INFO("key O");
 	  write_fp_xy(ts_data);
           proxy_skip = true;
 	}
-	if ((ts_data->aod_enable == ENABLE) && (ts_data-> fp_report_type==0)) {  // AOD only
+	if (ts_data-> fp_report_type==0) {  // AOD only
 	  FTS_INFO("key L in aod");
 	  gesture = KEY_GESTURE_L;
 	  proxy_skip = false;
@@ -115,13 +114,12 @@ void asus_gesture_report(struct fts_ts_data *ts_data, int gesture_id)
 	  FTS_INFO("key F");
 	  /* ASUS BSP Display +++ */
 	  zf8_drm_notify(ASUS_NOTIFY_FOD_TOUCHED, 1);
-	  ts_data->next_resume_isaod = true;
 	  ts_data->fp_filter = true;
 	  gesture = KEY_GESTURE_F;
 	  write_fp_xy(ts_data);
           proxy_skip = true;
 	}
-	if ((ts_data->aod_enable == ENABLE) && (ts_data-> fp_report_type==0)) {  // AOD only
+	if (ts_data-> fp_report_type==0) {  // AOD only
 	  FTS_INFO("key L in aod");
 	  gesture = KEY_GESTURE_L;
 	  proxy_skip = false;
@@ -131,11 +129,10 @@ void asus_gesture_report(struct fts_ts_data *ts_data, int gesture_id)
         if ((ts_data->fp_enable == 1) && (ts_data-> fp_report_type!=0)) {
 	  FTS_INFO("key U");
 	  gesture = KEY_GESTURE_U;
-	  ts_data->next_resume_isaod = false;
 	  ts_data->fp_filter = false;
 	  proxy_skip = true;
 	}
-	if ((ts_data->aod_enable == ENABLE) && (ts_data-> fp_report_type==0)) {  // AOD only
+	if (ts_data-> fp_report_type==0) {  // AOD only
 	  FTS_INFO("key L in aod");
 	  gesture = KEY_GESTURE_L;
 	  proxy_skip = false;
@@ -147,7 +144,7 @@ void asus_gesture_report(struct fts_ts_data *ts_data, int gesture_id)
 	  gesture = KEY_GESTURE_L;
 	  proxy_skip = true;
 	}
-	if ((ts_data->aod_enable == ENABLE) && (ts_data-> fp_report_type==0)) {  // AOD only
+	if (ts_data-> fp_report_type==0) {  // AOD only
 	  FTS_INFO("key L in aod");
 	  gesture = KEY_GESTURE_L;
 	  proxy_skip = false;
@@ -266,7 +263,7 @@ int set_gesture_register (struct fts_ts_data *ts_data)
     reg_D6 = 0x00;
     reg_D7 = 0x00;
     
-    if ((ts_data->fp_enable) || (ts_data->aod_enable == ENABLE)) {
+    if (ts_data->fp_enable) {
         reg_D1 = reg_D1|fod_bit;
     }
     if (ts_data->dclick_mode == 1){
@@ -345,11 +342,6 @@ int is_enter_gesture_mode (struct fts_ts_data *ts_data)
     if (ts_data->swipeup_mode == 1) {
        enable_gesture = 1;  
        FTS_INFO("Swipe up enable , enter gesture mode");
-    }
-
-    if (ts_data->aod_enable == ENABLE) {
-        enable_gesture = 1;
-        FTS_INFO("AOD triggered by touch , enter gesture mode");
     }
 
     return enable_gesture;

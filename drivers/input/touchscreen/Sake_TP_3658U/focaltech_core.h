@@ -229,7 +229,6 @@ struct fts_ts_data {
     bool irq_off;
 //fod
     bool fp_enable;
-    bool aod_enable;
     int fp_report_type;
     int fp_x;
     int fp_y;
@@ -245,7 +244,6 @@ struct fts_ts_data {
     int swipeup_mode;
     u8 gesture_type;        /* 8 bit: music_control V Z M e S W Main_Switch */
     bool phone_call_state;
-    bool next_resume_isaod;
 //game    
     bool game_mode;
     int rotation_angle;
