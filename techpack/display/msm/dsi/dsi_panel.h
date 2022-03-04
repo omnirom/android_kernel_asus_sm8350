@@ -291,8 +291,6 @@ struct dsi_panel {
 	bool has_enter_aod_before;
 	bool fod_in_doze;
 	int panel_bl_count; // count for enable dimming
-	int  aod_mode;//0: not aod mode 1: AOD low mode 2: AOD high mode
-	bool dc_fps_change;
 
 	struct brightness_alpha_pair *fod_dim_lut;
 	unsigned int fod_dim_lut_len;
