@@ -113,6 +113,7 @@ obj-$(CONFIG_TOUCHSCREEN_IQS5XX)	+= iqs5xx.o
 #obj-$(CONFIG_TOUCHSCREEN_ST)	+= st/
 obj-$(CONFIG_TOUCHSCREEN_FTS)	+= focaltech_touch/
 obj-$(CONFIG_TOUCHSCREEN_SYNAPTICS_TCM)	+= synaptics_tcm/
+obj-$(CONFIG_TOUCHSCREEN_FTS_V3_3)	+= focaltech_touch_v3_3/
 ifeq ($(CONFIG_MACH_ASUS_SAKE),y)
 obj-$(CONFIG_TOUCHSCREEN_FTS_ZF)	+= Sake_TP_3658U/
 else ifeq ($(CONFIG_MACH_ASUS_VODKA),y)

@@ -1326,6 +1326,7 @@ config TOUCHSCREEN_SYNAPTICS_TCM
 source "drivers/input/touchscreen/synaptics_tcm/Kconfig"
 #source "drivers/input/touchscreen/st/Kconfig"
 source "drivers/input/touchscreen/focaltech_touch/Kconfig"
+source "drivers/input/touchscreen/focaltech_touch_v3_3/Kconfig"
 source "drivers/input/touchscreen/Sake_TP_3658U/Kconfig"
 source "drivers/input/touchscreen/Vodka_TP_3518U/Kconfig"
 source "drivers/input/touchscreen/ROG5_TP/Kconfig"
