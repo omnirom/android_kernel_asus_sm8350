@@ -238,6 +238,10 @@ struct fts_ts_data {
     int fp_mini;
     bool fp_filter;
     bool wait_reset;
+    bool fod_pressed;
+    unsigned int fod_last_press_area;
+    unsigned int fod_last_press_id;
+    unsigned int fod_position[4];
 //gesture
     int gesture_mode_enable;
     int music_control;

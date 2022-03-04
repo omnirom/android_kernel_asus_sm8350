@@ -164,12 +164,8 @@ static ssize_t fts_touch_status_show(
 static ssize_t fts_fp_mode_show(
     struct device *dev, struct device_attribute *attr, char *buf)
 {
-    int count = 0;
-   
-    count = snprintf(buf + count, PAGE_SIZE, "Notify FP:%s\n",
-                     fts_data->fp_enable ? "On" : "Off");
 
-    return count;
+    return snprintf(buf, PAGE_SIZE, "%u\n", fts_data->fp_enable);
 }
 
 static ssize_t fts_fp_mode_store(
@@ -428,6 +424,14 @@ static ssize_t asus_ex_proc_glove_write(struct file *filp, const char *buff, siz
 	return len;
 }
 
+static ssize_t fts_fod_pressed_show(struct device *dev,
+                   struct device_attribute *attr, char *buf)
+{
+	struct fts_ts_data *ts_data = fts_data;
+
+	return snprintf(buf, PAGE_SIZE, "%u\n", ts_data->fod_pressed);
+}
+
 static struct file_operations asus_ex_proc_glove_ops = {
 	.write = asus_ex_proc_glove_write,
 	.read  = asus_ex_proc_glove_read,
@@ -444,6 +448,7 @@ static DEVICE_ATTR(fts_aod_ctrl_mode, S_IRUGO | S_IWUSR, fts_aod_ctrl_mode_show,
 static DEVICE_ATTR(fts_phone_state, S_IRUGO | S_IWUSR, fts_phonecall_state_show, fts_phonecall_state_store);
 static DEVICE_ATTR(fp_auth_status, S_IRUGO | S_IWUSR, fp_auth_status_show, fp_auth_status_store);
 static DEVICE_ATTR(fp_area, S_IRUGO | S_IWUSR, fp_area_show, fp_area_store);
+static DEVICE_ATTR(fts_fod_pressed, S_IRUGO, fts_fod_pressed_show, NULL);
 
 /* add your attr in here*/
 static struct attribute *fts_attributes[] = {
@@ -454,6 +459,7 @@ static struct attribute *fts_attributes[] = {
     &dev_attr_fts_phone_state.attr,
     &dev_attr_fp_auth_status.attr,
     &dev_attr_fp_area.attr,
+    &dev_attr_fts_fod_pressed.attr,
     NULL
 };
 

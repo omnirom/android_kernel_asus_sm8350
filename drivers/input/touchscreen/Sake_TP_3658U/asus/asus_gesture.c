@@ -83,6 +83,7 @@ void asus_gesture_report(struct fts_ts_data *ts_data, int gesture_id)
     struct input_dev *input_dev = ts_data->input_dev;
     bool proxy_status = false;
     bool proxy_skip = false;
+    u8 *buf = ts_data->point_buf;
 
     FTS_DEBUG("gesture_id:0x%x, fp_report_type:%d", gesture_id, ts_data->fp_report_type);
 
@@ -97,6 +98,14 @@ void asus_gesture_report(struct fts_ts_data *ts_data, int gesture_id)
     switch (gesture_id) {
 // FOD
     case GESTURE_O:
+    if (ts_data->point_num >= 1) {
+            ts_data->fp_x = ((buf[4] & 0x0F) << 8) + buf[5];
+            ts_data->fp_y = ((buf[6] & 0x0F) << 8) + buf[7];
+        }
+
+    ts_data->fod_pressed = true;
+    sysfs_notify(&ts_data->dev->kobj, NULL, "fts_fod_pressed");
+
 	if ((ts_data->fp_enable == 1) && (ts_data-> fp_report_type!=0)) {
 	  gesture = KEY_GESTURE_O;
 	  ts_data->next_resume_isaod = true;
@@ -111,6 +120,14 @@ void asus_gesture_report(struct fts_ts_data *ts_data, int gesture_id)
 	}
         break;
     case GESTURE_F:
+        if (ts_data->point_num >= 1) {
+            ts_data->fp_x = ((buf[4] & 0x0F) << 8) + buf[5];
+            ts_data->fp_y = ((buf[6] & 0x0F) << 8) + buf[7];
+        }
+
+    ts_data->fod_pressed = true;
+    sysfs_notify(&ts_data->dev->kobj, NULL, "fts_fod_pressed");
+
 	if ((ts_data->fp_enable == 1) && (ts_data-> fp_report_type!=0)) {
 	  FTS_INFO("key F");
 	  /* ASUS BSP Display +++ */
@@ -128,6 +145,8 @@ void asus_gesture_report(struct fts_ts_data *ts_data, int gesture_id)
 	}
         break;
     case GESTURE_U:
+        ts_data->fod_pressed = false;
+
         if ((ts_data->fp_enable == 1) && (ts_data-> fp_report_type!=0)) {
 	  FTS_INFO("key U");
 	  gesture = KEY_GESTURE_U;
