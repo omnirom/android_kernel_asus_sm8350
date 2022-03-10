@@ -239,6 +239,9 @@ struct fts_ts_data {
 	unsigned int fod_last_press_id;
 	unsigned int fod_position[4];
 	unsigned int swipeup_mode;
+	unsigned int gesture_mode_enable;
+	unsigned int music_control;
+	u8 gesture_type;
 #endif
 };
 

@@ -1264,6 +1264,83 @@ static ssize_t asus_gesture_proc_swipeup_write(struct file *filp, const char *bu
 	queue_work(fts_data->ts_workqueue, &fts_data->gesture_work);
 	return len;
 }
+
+static ssize_t asus_gesture_proc_type_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
+{
+	ssize_t ret = 0;
+	char *buff = NULL;
+	int offset = 0;
+	FTS_FUNC_ENTER();
+	buff = kzalloc(100, GFP_KERNEL);
+	if (!buff)
+		return -ENOMEM;
+
+	offset += sprintf(buff, "%#x \n", fts_data->gesture_type);
+
+	ret = simple_read_from_buffer(buf, count, ppos, buff, offset);
+	kfree(buff);
+
+	return ret;
+}
+
+static ssize_t asus_gesture_proc_type_write(struct file *filp, const char *buff, size_t len, loff_t *off)
+{
+	struct fts_ts_data *ts_data = fts_data;
+	int tmp = 0;
+	u8 gesture_tmp = 0;
+	char gesture_buf[16];
+	char gesture_type_buf[16] = {'0'};
+	char messages[16];
+	memset(messages, 0, sizeof(messages));
+	FTS_FUNC_ENTER();
+
+	if (len > 16)
+		len = 16;
+
+	if (copy_from_user(messages, buff, len))
+		return -EFAULT;
+
+	memset(gesture_buf, 0, sizeof(gesture_buf));
+	sprintf(gesture_buf, "%s", messages);
+	gesture_buf[len] = '\0';
+	FTS_INFO("fts_gesture_store %s ! length %d", gesture_buf, len);
+
+	memset(gesture_type_buf, 0, sizeof(gesture_type_buf));
+	gesture_type_buf[8] = '\0';
+	for (tmp = 0; tmp < len; tmp++) {
+		gesture_type_buf[tmp] = gesture_buf[len-tmp-1];
+	}
+	FTS_INFO("fts_gesture_store %s ! length %d", gesture_type_buf, len);
+	if (gesture_type_buf[0] == '1') {
+		fts_data->gesture_mode_enable = ENABLE;
+		FTS_INFO("gesture_mode enable !");
+	} else
+		fts_data->gesture_mode_enable = DISABLE;
+
+	if (gesture_type_buf[7] == '1') {
+		fts_data->music_control = ENABLE;
+		printk("[Focal][Touch] music_control enable ! \n");
+	} else
+		fts_data->music_control = DISABLE;
+
+	if (fts_data->gesture_mode_enable == ENABLE) {
+		for (tmp = 0; tmp < 8; tmp++) {
+			if (gesture_type_buf[tmp] == '1') {
+				gesture_tmp |= (1 << tmp);
+			}
+		}
+		fts_data->gesture_type = gesture_tmp;
+		FTS_INFO("gesture_mode_enable type = %#x !", fts_data->gesture_type);
+	} else {
+		fts_data->gesture_mode_enable = DISABLE;
+		fts_data->music_control = DISABLE;
+		fts_data->gesture_type = 0;
+		FTS_INFO("gesture mode is disabled.");
+	}
+	queue_work(fts_data->ts_workqueue, &fts_data->gesture_work);
+
+	return len;
+}
 #endif
 
 /* get the fw version  example:cat fw_version */
@@ -1330,6 +1407,11 @@ static struct file_operations asus_gesture_proc_swipeup_ops = {
 	.write = asus_gesture_proc_swipeup_write,
 	.read  = asus_gesture_proc_swipeup_read,
 };
+
+static struct file_operations asus_gesture_proc_type_ops = {
+	.write = asus_gesture_proc_type_write,
+	.read  = asus_gesture_proc_type_read,
+};
 #endif
 
 int fts_create_sysfs(struct fts_ts_data *ts_data)
@@ -1349,6 +1431,7 @@ int fts_create_sysfs(struct fts_ts_data *ts_data)
 	proc_create("driver/fp_xy", 0777, NULL, &asus_ex_proc_fpxy_ops);
 	proc_create("driver/dclick", 0777, NULL, &asus_gesture_proc_dclick_ops);
 	proc_create("driver/swipeup", 0777, NULL, &asus_gesture_proc_swipeup_ops);
+	proc_create("driver/gesture_type", 0777, NULL, &asus_gesture_proc_type_ops);
 #endif
 
 	return ret;

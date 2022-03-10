@@ -52,6 +52,9 @@
 #define KEY_GESTURE_V KEY_V
 #define KEY_GESTURE_C KEY_C
 #define KEY_GESTURE_Z KEY_Z
+#define KEY_GESTURE_PAUSE KEY_PAUSE
+#define KEY_GESTURE_REWIND KEY_REWIND
+#define KEY_GESTURE_FORWARD KEY_FORWARD
 
 #define GESTURE_LEFT 0x20
 #define GESTURE_RIGHT 0x21
@@ -63,17 +66,21 @@
 #define GESTURE_E 0x33
 #define GESTURE_S 0x46
 #define GESTURE_V 0x54
-#define GESTURE_Z 0x41
 #define GESTURE_C 0x34
+#define MUSIC_PAUSE 0x26
+#define MUSIC_REWIND 0x51
+#define MUSIC_FORWARD 0x52
 
 #if defined ASUS_SAKE_PROJECT
 #define GESTURE_F 0x28
 #define GESTURE_L 0x27
 #define GESTURE_O 0x2A
 #define GESTURE_U 0x29
+#define GESTURE_Z 0x65
 #else
 #define GESTURE_L 0x44
 #define GESTURE_O 0x30
+#define GESTURE_Z 0x41
 #endif
 
 /*****************************************************************************
@@ -115,6 +122,19 @@ static struct fts_gesture_st fts_gesture_data;
 #define FTS_REG_D1_SWIPE_BIT BIT(2)
 #define FTS_REG_D1_FOD_BIT BIT(7)
 
+/*Music*/
+#define FTS_REG_D1_PAUSE_BIT BIT(6)
+#define FTS_REG_D6_REWIND_BIT BIT(1)
+#define FTS_REG_D6_FORWARD_BIT BIT(2)
+
+/*Letters*/
+#define FTS_REG_D2_E_BIT BIT(3)
+#define FTS_REG_D2_M_BIT BIT(2)
+#define FTS_REG_D5_S_BIT BIT(6)
+#define FTS_REG_D6_V_BIT BIT(4)
+#define FTS_REG_D2_W_BIT BIT(1)
+#define FTS_REG_D7_Z_BIT BIT(5)
+
 static void fts_gesture_apply(struct fts_ts_data *ts_data)
 {
 	u8 gesture_regs[] = { 0xD1, 0xD2, 0xD5, 0xD6, 0xD7 };
@@ -142,6 +162,27 @@ static void fts_gesture_work(struct work_struct *work)
 
 	if (ts_data->fod_mode)
 		ts_data->gesture_data[0] |= FTS_REG_D1_FOD_BIT;
+
+	if (ts_data->music_control == 1) {
+		ts_data->gesture_data[0] |= FTS_REG_D1_PAUSE_BIT;
+		ts_data->gesture_data[0] |= FTS_REG_D6_REWIND_BIT;
+		ts_data->gesture_data[0] |= FTS_REG_D6_FORWARD_BIT;
+	}
+
+	if (ts_data->gesture_mode_enable == 1){
+		if (ts_data->gesture_type & 1 << 1)
+			ts_data->gesture_data[1] |= FTS_REG_D2_W_BIT;
+		if (ts_data->gesture_type & 1 << 2)
+			ts_data->gesture_data[2] |= FTS_REG_D5_S_BIT;
+		if (ts_data->gesture_type & 1 << 3)
+			ts_data->gesture_data[1] |= FTS_REG_D2_E_BIT;
+		if (ts_data->gesture_type & 1 << 4)
+			ts_data->gesture_data[1] |= FTS_REG_D2_M_BIT;
+		if (ts_data->gesture_type & 1 << 5)
+			ts_data->gesture_data[4] |= FTS_REG_D7_Z_BIT;
+		if (ts_data->gesture_type & 1 << 6)
+			ts_data->gesture_data[3] |= FTS_REG_D6_V_BIT;
+	}
 
 	for (i = 0; i < sizeof(ts_data->gesture_data); i++)
 		if (ts_data->gesture_data[i])
@@ -325,24 +366,29 @@ static int fts_create_gesture_sysfs(struct device *dev)
 	return 0;
 }
 
-static void fts_gesture_report(struct input_dev *input_dev, int gesture_id)
+static void fts_gesture_report(struct fts_ts_data *ts_data, int gesture_id)
 {
-	int gesture;
+	int gesture = -1;
+	struct input_dev *input_dev = ts_data->input_dev;
 
 	FTS_DEBUG("gesture_id:0x%x", gesture_id);
 	switch (gesture_id) {
+#if !defined ASUS_SAKE_PROJECT
 	case GESTURE_LEFT:
 		gesture = KEY_GESTURE_LEFT;
 		break;
 	case GESTURE_RIGHT:
 		gesture = KEY_GESTURE_RIGHT;
 		break;
+#endif
 	case GESTURE_UP:
 		gesture = KEY_GESTURE_UP;
 		break;
+#if !defined ASUS_SAKE_PROJECT
 	case GESTURE_DOWN:
 		gesture = KEY_GESTURE_DOWN;
 		break;
+#endif
 	case GESTURE_DOUBLECLICK:
 		gesture = KEY_WAKEUP;
 		break;
@@ -352,13 +398,19 @@ static void fts_gesture_report(struct input_dev *input_dev, int gesture_id)
 		break;
 #endif
 	case GESTURE_W:
-		gesture = KEY_GESTURE_W;
+		if (ts_data->gesture_type & 1 << 1) { // W
+			gesture = KEY_GESTURE_W;
+		}
 		break;
 	case GESTURE_M:
-		gesture = KEY_GESTURE_M;
+		if (ts_data->gesture_type & 1 << 4) { // M
+			gesture = KEY_GESTURE_M;
+		}
 		break;
 	case GESTURE_E:
-		gesture = KEY_GESTURE_E;
+		if (fts_data->gesture_type & 1 << 3) { // e
+			gesture = KEY_GESTURE_E;
+		}
 		break;
 #if !defined ASUS_SAKE_PROJECT
 	case GESTURE_L:
@@ -366,16 +418,39 @@ static void fts_gesture_report(struct input_dev *input_dev, int gesture_id)
 		break;
 #endif
 	case GESTURE_S:
-		gesture = KEY_GESTURE_S;
+		if (ts_data->gesture_type & 1 << 2) { // S
+			gesture = KEY_GESTURE_S;
+		}
 		break;
 	case GESTURE_V:
-		gesture = KEY_GESTURE_V;
+		if (fts_data->gesture_type & 1 << 6) { // V
+			gesture = KEY_GESTURE_V;
+		}
 		break;
 	case GESTURE_Z:
-		gesture = KEY_GESTURE_Z;
+		if (fts_data->gesture_type & 1 << 5) { // Z
+			gesture = KEY_GESTURE_Z;
+		}
 		break;
+#if !defined ASUS_SAKE_PROJECT
 	case GESTURE_C:
 		gesture = KEY_GESTURE_C;
+		break;
+#endif
+	case MUSIC_PAUSE:
+		if (ts_data->gesture_type & 1 << 7) {
+			gesture = KEY_GESTURE_PAUSE;
+		}
+		break;
+	case MUSIC_REWIND:
+		if (ts_data->gesture_type & 1 << 7) {
+			gesture = KEY_GESTURE_REWIND;
+		}
+		break;
+	case MUSIC_FORWARD:
+		if (ts_data->gesture_type & 1 << 7) {
+			gesture = KEY_GESTURE_FORWARD;
+		}
 		break;
 	default:
 		gesture = -1;
@@ -413,7 +488,6 @@ int fts_gesture_readdata(struct fts_ts_data *ts_data, u8 *data)
 	int index = 0;
 #endif
 	u8 buf[FTS_GESTURE_DATA_LEN] = { 0 };
-	struct input_dev *input_dev = ts_data->input_dev;
 	struct fts_gesture_st *gesture = &fts_gesture_data;
 
 	if (!ts_data->suspended || !ts_data->gesture_mode) {
@@ -489,7 +563,7 @@ int fts_gesture_readdata(struct fts_ts_data *ts_data, u8 *data)
 #endif
 
 	/* report gesture to OS */
-	fts_gesture_report(input_dev, gesture->gesture_id);
+	fts_gesture_report(ts_data, gesture->gesture_id);
 	return 0;
 }
 
@@ -599,6 +673,9 @@ int fts_gesture_init(struct fts_ts_data *ts_data)
 	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_Z);
 	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_C);
 	input_set_capability(input_dev, EV_KEY, KEY_WAKEUP);
+	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_PAUSE);
+	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_REWIND);
+	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_FORWARD);
 
 	__set_bit(KEY_GESTURE_RIGHT, input_dev->keybit);
 	__set_bit(KEY_GESTURE_LEFT, input_dev->keybit);
@@ -616,6 +693,9 @@ int fts_gesture_init(struct fts_ts_data *ts_data)
 	__set_bit(KEY_GESTURE_C, input_dev->keybit);
 	__set_bit(KEY_GESTURE_Z, input_dev->keybit);
 	__set_bit(KEY_WAKEUP, input_dev->keybit);
+	__set_bit(KEY_GESTURE_PAUSE, input_dev->keybit);
+	__set_bit(KEY_GESTURE_REWIND, input_dev->keybit);
+	__set_bit(KEY_GESTURE_FORWARD, input_dev->keybit);
 
 #if defined ASUS_SAKE_PROJECT
 	INIT_WORK(&ts_data->gesture_work, fts_gesture_work);
