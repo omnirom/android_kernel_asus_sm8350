@@ -1225,6 +1225,45 @@ static ssize_t asus_gesture_proc_dclick_write(struct file *filp,
 
 	return len;
 }
+
+static ssize_t asus_gesture_proc_swipeup_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
+{
+	int len = 0;
+	ssize_t ret = 0;
+	char *buff = NULL;
+
+	buff = kzalloc(100, GFP_KERNEL);
+	if (!buff)
+		return -ENOMEM;
+
+	len += sprintf(buff, "%d\n", fts_data->swipeup_mode);
+	ret = simple_read_from_buffer(buf, count, ppos, buff, len);
+	kfree(buff);
+
+	return ret;
+}
+
+static ssize_t asus_gesture_proc_swipeup_write(struct file *filp, const char *buff, size_t len, loff_t *off)
+{
+	char messages[256];
+	memset(messages, 0, sizeof(messages));
+
+	if (len > 256)
+		len = 256;
+	if (copy_from_user(messages, buff, len))
+		return -EFAULT;
+
+	if (strncmp(messages, "0", 1) == 0) {
+		fts_data->swipeup_mode = DISABLE;
+		FTS_INFO("swipeup_mode_disable");
+	} else {
+		fts_data->swipeup_mode = ENABLE;
+		FTS_INFO("swipeup_mode_enable");
+	}
+
+	queue_work(fts_data->ts_workqueue, &fts_data->gesture_work);
+	return len;
+}
 #endif
 
 /* get the fw version  example:cat fw_version */
@@ -1286,6 +1325,11 @@ static struct file_operations asus_gesture_proc_dclick_ops = {
 	.write = asus_gesture_proc_dclick_write,
 	.read = asus_gesture_proc_dclick_read,
 };
+
+static struct file_operations asus_gesture_proc_swipeup_ops = {
+	.write = asus_gesture_proc_swipeup_write,
+	.read  = asus_gesture_proc_swipeup_read,
+};
 #endif
 
 int fts_create_sysfs(struct fts_ts_data *ts_data)
@@ -1304,6 +1348,7 @@ int fts_create_sysfs(struct fts_ts_data *ts_data)
 #if defined ASUS_SAKE_PROJECT
 	proc_create("driver/fp_xy", 0777, NULL, &asus_ex_proc_fpxy_ops);
 	proc_create("driver/dclick", 0777, NULL, &asus_gesture_proc_dclick_ops);
+	proc_create("driver/swipeup", 0777, NULL, &asus_gesture_proc_swipeup_ops);
 #endif
 
 	return ret;
