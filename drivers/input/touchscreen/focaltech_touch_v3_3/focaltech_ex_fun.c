@@ -1221,7 +1221,8 @@ static ssize_t asus_gesture_proc_dclick_write(struct file *filp,
 		return len;
 
 	ts_data->dclick_mode = dclick_mode;
-	queue_work(ts_data->ts_workqueue, &ts_data->gesture_work);
+	mod_delayed_work(ts_data->ts_workqueue, &ts_data->gesture_work,
+		msecs_to_jiffies(100));
 
 	return len;
 }
@@ -1255,7 +1256,8 @@ static ssize_t asus_gesture_proc_swipeup_write(struct file *filp, const char *bu
 		return len;
 
 	ts_data->swipeup_mode = swipeup_mode;
-	queue_work(ts_data->ts_workqueue, &ts_data->gesture_work);
+	mod_delayed_work(ts_data->ts_workqueue, &ts_data->gesture_work,
+		msecs_to_jiffies(100));
 
 	return len;
 }
@@ -1332,7 +1334,8 @@ static ssize_t asus_gesture_proc_type_write(struct file *filp, const char *buff,
 		fts_data->gesture_type = 0;
 		FTS_INFO("gesture mode is disabled.");
 	}
-	queue_work(ts_data->ts_workqueue, &ts_data->gesture_work);
+	mod_delayed_work(ts_data->ts_workqueue, &ts_data->gesture_work,
+		msecs_to_jiffies(100));
 
 	return len;
 }

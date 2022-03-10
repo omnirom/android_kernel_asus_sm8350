@@ -146,8 +146,9 @@ static void fts_gesture_apply(struct fts_ts_data *ts_data)
 
 static void fts_gesture_work(struct work_struct *work)
 {
+	struct delayed_work *dwork = to_delayed_work(work);
 	struct fts_ts_data *ts_data =
-		container_of(work, struct fts_ts_data, gesture_work);
+		container_of(dwork, struct fts_ts_data, gesture_work);
 	bool suspended = ts_data->suspended;
 	bool gesture_mode = false;
 	unsigned int i;
@@ -224,7 +225,8 @@ static ssize_t fts_fod_mode_store(struct device *dev,
 	ts_data->fod_mode = fod_mode;
 	mutex_unlock(&ts_data->input_dev->mutex);
 
-	queue_work(ts_data->ts_workqueue, &ts_data->gesture_work);
+	mod_delayed_work(ts_data->ts_workqueue, &ts_data->gesture_work,
+		msecs_to_jiffies(100));
 
 	return count;
 
@@ -698,7 +700,7 @@ int fts_gesture_init(struct fts_ts_data *ts_data)
 	__set_bit(KEY_GESTURE_FORWARD, input_dev->keybit);
 
 #if defined ASUS_SAKE_PROJECT
-	INIT_WORK(&ts_data->gesture_work, fts_gesture_work);
+	INIT_DELAYED_WORK(&ts_data->gesture_work, fts_gesture_work);
 #endif
 
 	fts_create_gesture_sysfs(ts_data->dev);
