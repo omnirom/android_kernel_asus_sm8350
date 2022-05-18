@@ -294,7 +294,7 @@ static int tmd2755_ALSPS_hw_get_interrupt()
 		chip->in_asat = 0;
 	}
 
-	if ((status & TMD2755_INT_ST_ALS_IRQ) || chip->in_asat) {
+	if (status & TMD2755_INT_ST_ALS_IRQ) {
 		if (status & TMD2755_INT_ST_ALS_IRQ)
 			dev_dbg(dev, "%*.*s():%*d --> ALS Threshold Interrupt occurred\n",
 				MIN_KERNEL_LOG_LEN, MAX_KERNEL_LOG_LEN, __func__, LINE_NUM_KERNEL_LOG_LEN, __LINE__);
@@ -1658,6 +1658,13 @@ static int tmd2755_proximity_hw_set_offset_limit(int en, int thresh)
 	return 0;
 }
 
+static int tmd2755_proximity_hw_set_offset(int offset)
+{
+	g_tmd2755_chip->params.poffset = offset;
+	log("assing offset as %d", offset);
+	return 0;
+}
+
 static ssize_t tmd2755_ALSPS_hw_show_allreg(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	return tmd2755_registers_get(g_tmd2755_chip, buf, PAGE_SIZE);
@@ -1819,6 +1826,7 @@ static struct psensor_hw psensor_hw_tmd2755 = {
 	.proximity_hw_get_offset = tmd2755_proximity_hw_get_offset,
 	.proximity_hw_set_fac_offset = tmd2755_proximity_hw_set_fac_offset,
 	.proximity_hw_set_offset_limit = tmd2755_proximity_hw_set_offset_limit,
+	.proximity_hw_set_offset = tmd2755_proximity_hw_set_offset,
 };
 
 static struct lsensor_hw lsensor_hw_tmd2755 = {

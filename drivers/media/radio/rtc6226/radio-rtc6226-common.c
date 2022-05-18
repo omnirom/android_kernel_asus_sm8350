@@ -548,22 +548,22 @@ void rtc6226_search(struct rtc6226_device *radio, bool on)
 
 	current_freq_khz = radio->tuned_freq_khz;
 
-	FMDBG("%s rtc6226_power_up1: DeviceID=0x%4.4hx ChipID=0x%4.4hx\n",
+	FMDERR("%s rtc6226_power_up1: DeviceID=0x%4.4hx ChipID=0x%4.4hx\n",
 		__func__,
 		radio->registers[DEVICEID], radio->registers[CHIPID]);
-	FMDBG("%s rtc6226_power_up2: Reg2=0x%4.4hx Reg3=0x%4.4hx\n", __func__,
+	FMDERR("%s rtc6226_power_up2: Reg2=0x%4.4hx Reg3=0x%4.4hx\n", __func__,
 		radio->registers[MPXCFG], radio->registers[CHANNEL]);
-	FMDBG("%s rtc6226_power_up3: Reg4=0x%4.4hx Reg5=0x%4.4hx\n", __func__,
+	FMDERR("%s rtc6226_power_up3: Reg4=0x%4.4hx Reg5=0x%4.4hx\n", __func__,
 		radio->registers[SYSCFG], radio->registers[SEEKCFG1]);
-	FMDBG("%s rtc6226_power_up4: Reg6=0x%4.4hx Reg7=0x%4.4hx\n", __func__,
+	FMDERR("%s rtc6226_power_up4: Reg6=0x%4.4hx Reg7=0x%4.4hx\n", __func__,
 		radio->registers[POWERCFG], radio->registers[PADCFG]);
-	FMDBG("%s rtc6226_power_up5: Reg8=0x%4.4hx Reg9=0x%4.4hx\n", __func__,
+	FMDERR("%s rtc6226_power_up5: Reg8=0x%4.4hx Reg9=0x%4.4hx\n", __func__,
 		radio->registers[8], radio->registers[9]);
-	FMDBG("%s rtc6226_power_up6: regA=0x%4.4hx RegB=0x%4.4hx\n", __func__,
+	FMDERR("%s rtc6226_power_up6: regA=0x%4.4hx RegB=0x%4.4hx\n", __func__,
 		radio->registers[10], radio->registers[11]);
-	FMDBG("%s rtc6226_power_up7: regC=0x%4.4hx RegD=0x%4.4hx\n", __func__,
+	FMDERR("%s rtc6226_power_up7: regC=0x%4.4hx RegD=0x%4.4hx\n", __func__,
 		radio->registers[12], radio->registers[13]);
-	FMDBG("%s rtc6226_power_up8: regE=0x%4.4hx RegF=0x%4.4hx\n", __func__,
+	FMDERR("%s rtc6226_power_up8: regE=0x%4.4hx RegF=0x%4.4hx\n", __func__,
 		radio->registers[14], radio->registers[15]);
 
 	if (on) {
@@ -629,22 +629,22 @@ int rtc6226_start(struct rtc6226_device *radio)
 	if (retval < 0)
 		goto done;
 
-	FMDBG("%s rtc6226_power_up1: DeviceID=0x%4.4hx ChipID=0x%4.4hx\n",
+	FMDERR("%s rtc6226_power_up1: DeviceID=0x%4.4hx ChipID=0x%4.4hx\n",
 		__func__,
 		radio->registers[DEVICEID], radio->registers[CHIPID]);
-	FMDBG("%s rtc6226_power_up2: Reg2=0x%4.4hx Reg3=0x%4.4hx\n", __func__,
+	FMDERR("%s rtc6226_power_up2: Reg2=0x%4.4hx Reg3=0x%4.4hx\n", __func__,
 		radio->registers[MPXCFG], radio->registers[CHANNEL]);
-	FMDBG("%s rtc6226_power_up3: Reg4=0x%4.4hx Reg5=0x%4.4hx\n", __func__,
+	FMDERR("%s rtc6226_power_up3: Reg4=0x%4.4hx Reg5=0x%4.4hx\n", __func__,
 		radio->registers[SYSCFG], radio->registers[SEEKCFG1]);
-	FMDBG("%s rtc6226_power_up4: Reg6=0x%4.4hx Reg7=0x%4.4hx\n", __func__,
+	FMDERR("%s rtc6226_power_up4: Reg6=0x%4.4hx Reg7=0x%4.4hx\n", __func__,
 		radio->registers[POWERCFG], radio->registers[PADCFG]);
-	FMDBG("%s rtc6226_power_up5: Reg8=0x%4.4hx Reg9=0x%4.4hx\n", __func__,
+	FMDERR("%s rtc6226_power_up5: Reg8=0x%4.4hx Reg9=0x%4.4hx\n", __func__,
 		radio->registers[8], radio->registers[9]);
-	FMDBG("%s rtc6226_power_up6: regA=0x%4.4hx RegB=0x%4.4hx\n", __func__,
+	FMDERR("%s rtc6226_power_up6: regA=0x%4.4hx RegB=0x%4.4hx\n", __func__,
 		radio->registers[10], radio->registers[11]);
-	FMDBG("%s rtc6226_power_up7: regC=0x%4.4hx RegD=0x%4.4hx\n", __func__,
+	FMDERR("%s rtc6226_power_up7: regC=0x%4.4hx RegD=0x%4.4hx\n", __func__,
 		radio->registers[12], radio->registers[13]);
-	FMDBG("%s rtc6226_power_up8: regE=0x%4.4hx RegF=0x%4.4hx\n", __func__,
+	FMDERR("%s rtc6226_power_up8: regE=0x%4.4hx RegF=0x%4.4hx\n", __func__,
 		radio->registers[14], radio->registers[15]);
 
 
@@ -1519,21 +1519,21 @@ int rtc6226_power_up(struct rtc6226_device *radio)
 	if (retval < 0)
 		goto done;
 
-	FMDBG("%s : DeviceID=0x%4.4hx ChipID=0x%4.4hx\n", __func__,
+	FMDERR("%s : DeviceID=0x%4.4hx ChipID=0x%4.4hx\n", __func__,
 		radio->registers[DEVICEID], radio->registers[CHIPID]);
-	FMDBG("%s : Reg2=0x%4.4hx Reg3=0x%4.4hx\n", __func__,
+	FMDERR("%s : Reg2=0x%4.4hx Reg3=0x%4.4hx\n", __func__,
 		radio->registers[MPXCFG], radio->registers[CHANNEL]);
-	FMDBG("%s : Reg4=0x%4.4hx Reg5=0x%4.4hx\n", __func__,
+	FMDERR("%s : Reg4=0x%4.4hx Reg5=0x%4.4hx\n", __func__,
 		radio->registers[SYSCFG], radio->registers[SEEKCFG1]);
-	FMDBG("%s : Reg6=0x%4.4hx Reg7=0x%4.4hx\n", __func__,
+	FMDERR("%s : Reg6=0x%4.4hx Reg7=0x%4.4hx\n", __func__,
 		radio->registers[POWERCFG], radio->registers[PADCFG]);
-	FMDBG("%s : Reg8=0x%4.4hx Reg9=0x%4.4hx\n", __func__,
+	FMDERR("%s : Reg8=0x%4.4hx Reg9=0x%4.4hx\n", __func__,
 		radio->registers[8], radio->registers[9]);
-	FMDBG("%s : regA=0x%4.4hx RegB=0x%4.4hx\n", __func__,
+	FMDERR("%s : regA=0x%4.4hx RegB=0x%4.4hx\n", __func__,
 		radio->registers[10], radio->registers[11]);
-	FMDBG("%s : regC=0x%4.4hx RegD=0x%4.4hx\n", __func__,
+	FMDERR("%s : regC=0x%4.4hx RegD=0x%4.4hx\n", __func__,
 		radio->registers[12], radio->registers[13]);
-	FMDBG("%s : regE=0x%4.4hx RegF=0x%4.4hx\n", __func__,
+	FMDERR("%s : regE=0x%4.4hx RegF=0x%4.4hx\n", __func__,
 		radio->registers[14], radio->registers[15]);
 
 done:
@@ -2280,6 +2280,13 @@ static int rtc6226_vidioc_s_frequency(struct file *file, void *priv,
 	f = (freq->frequency)/TUNE_PARAM;
 
 	mutex_lock(&radio->lock);
+	FMDBG("%s seek_tune_status = %d\n", __func__, radio->seek_tune_status);
+	if (radio->seek_tune_status == SCAN_PENDING) {
+		FMDERR("%s:FM is scanning\n", __func__);
+		mutex_unlock(&radio->lock);
+		return -EINVAL;
+	}
+
 	radio->seek_tune_status = TUNE_PENDING;
 	retval = rtc6226_set_freq(radio, f);
 	if (retval < 0)
