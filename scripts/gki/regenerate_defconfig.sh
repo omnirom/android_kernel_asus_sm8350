@@ -23,5 +23,19 @@ export ASUS_BUILD_PROJECT=SAKE
 ./generate_defconfig.sh lahaina-qgki_defconfig
 
 echo
-echo "New Defconfig is Done"
+echo "New lahaina-qgki_defconfig is Done"
+echo
+
+cat $SOURCE_DIR/kernel/asus/sm8350/arch/arm64/configs/vendor/SAKE-perf_defconfig $SOURCE_DIR/kernel/asus/sm8350/arch/arm64/configs/vendor/lahaina-qgki_defconfig > $SOURCE_DIR/kernel/asus/sm8350/arch/arm64/configs/vendor/zf8_defconfig_temp
+
+echo
+echo "New zf8_defconfig_temp is Done"
+echo
+
+awk '!seen[$0]++' $SOURCE_DIR/kernel/asus/sm8350/arch/arm64/configs/vendor/zf8_defconfig_temp > $SOURCE_DIR/kernel/asus/sm8350/arch/arm64/configs/vendor/zf8_defconfig
+
+rm $SOURCE_DIR/kernel/asus/sm8350/arch/arm64/configs/vendor/zf8_defconfig_temp
+
+echo
+echo "Removed duplicated config from zf8_defconfig"
 echo

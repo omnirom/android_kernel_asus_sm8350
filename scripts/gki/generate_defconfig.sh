@@ -175,3 +175,4 @@ rm -rf $QCOM_GKI_ALLYES_FRAG .config include/config/ include/generated/ arch/$AR
 
 echo "================ end generate_defconfig.sh ================" >> generate_defconfig.txt
 echo "" >> generate_defconfig.txt
+rm generate_defconfig.txt
