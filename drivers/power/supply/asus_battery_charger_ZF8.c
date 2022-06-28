@@ -126,6 +126,8 @@ struct delayed_work asus_min_check_work;
 #else
 #define INIT_FV 4450
 #endif
+extern unsigned long asus_qpnp_rtc_read_time(void);
+extern bool rtc_probe_done;
 //ASUS_BSP battery safety upgrade ---
 
 //ASUS_BS battery health upgrade +++
@@ -1213,6 +1215,22 @@ static ssize_t in_call_show(struct class *c,
 }
 static CLASS_ATTR_RW(in_call);
 
+bool fix_time = false;
+static ssize_t launchedtime_store(struct class *c,
+                    struct class_attribute *attr,
+                    const char *buf, size_t count)
+{
+    u32 tmp;
+    tmp = simple_strtol(buf, NULL, 10);
+    ChgPD_Info.launchedtime = tmp * 3600;
+    fix_time = true;
+
+    CHG_DBG_E("%s. set active time : %d", __func__, tmp);
+
+    return count;
+}
+static CLASS_ATTR_WO(launchedtime);
+
 static struct attribute *asuslib_class_attrs[] = {
     &class_attr_asus_get_FG_SoC.attr,
     &class_attr_asus_get_PlatformID.attr,
@@ -1241,6 +1259,7 @@ static struct attribute *asuslib_class_attrs[] = {
     &class_attr_set_virtualthermal.attr,
     &class_attr_boot_completed.attr,
     &class_attr_in_call.attr,
+    &class_attr_launchedtime.attr,
     NULL,
 };
 ATTRIBUTE_GROUPS(asuslib_class);
@@ -1814,8 +1833,6 @@ void set_qc_stat(int status)
         }
         break;
     default:
-        cancel_delayed_work_sync(&asus_set_qc_state_work);
-        asus_extcon_set_state_sync(quickchg_extcon, SWITCH_LEVEL0_DEFAULT);
         break;
     }
 }
@@ -2357,11 +2374,8 @@ static void calculation_time_fun(int type)
 {
     unsigned long now_time;
     unsigned long temp_time = 0;
-    struct timespec64 mtNow;
 
-    ktime_get_coarse_real_ts64(&mtNow);
-
-    now_time = mtNow.tv_sec;
+    now_time = asus_qpnp_rtc_read_time();
 
     if(now_time < 0){
         pr_err("asus read rtc time failed!\n");
@@ -2377,6 +2391,12 @@ static void calculation_time_fun(int type)
                 temp_time = now_time - last_battery_total_time;
                 if(temp_time > 0)
                     g_cycle_count_data.battery_total_time += temp_time;
+                if(fix_time && ChgPD_Info.launchedtime > 864000){
+                    fix_time = false;
+                    if(g_cycle_count_data.battery_total_time > ChgPD_Info.launchedtime){
+                        g_cycle_count_data.battery_total_time = ChgPD_Info.launchedtime * 80 / 100;
+                    }
+                }
                 last_battery_total_time = now_time;
             }
         break;
@@ -2428,6 +2448,11 @@ static void update_battery_safe()
     union power_supply_propval prop = {};
 
     CHG_DBG("[BAT][CHG]%s +++", __func__);
+
+    if(rtc_probe_done != true){
+        pr_err("rtc probe is not ready");
+        return;
+    }
 
     if(g_asuslib_init != true){
         pr_err("asuslib init is not ready");
