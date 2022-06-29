@@ -415,7 +415,7 @@ static int dsi_zf8_set_fod_hbm(struct dsi_panel *panel, bool enable)
 		// to aviod ghbm without mask
 		if (panel->fod_in_doze) {
 			DSI_LOG("set display off first\n");
-			rc = dsi_zf8_tx_cmd_set(panel, DSI_CMD_AOD_OFF);
+			rc = dsi_zf8_tx_cmd_set(panel, DSI_CMD_SET_FOD_HBM_ON);
 			if (rc)
 				DSI_LOG("[%s] failed to send DSI_CMD_SET_LP1 cmd, rc=%d\n",
 						panel->name, rc);
