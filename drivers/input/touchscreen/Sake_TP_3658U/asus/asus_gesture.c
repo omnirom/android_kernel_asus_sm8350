@@ -363,20 +363,7 @@ int is_enter_gesture_mode (struct fts_ts_data *ts_data)
 
 static ssize_t asus_gesture_proc_type_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
 {
-	ssize_t ret = 0;
-	char *buff = NULL;
-	int offset = 0;
-	FTS_FUNC_ENTER();
-	buff = kzalloc(100, GFP_KERNEL);
-	if (!buff)
-		return -ENOMEM;
-
-	offset += sprintf(buff, "%#x \n", fts_data->gesture_type);
-
-	ret = simple_read_from_buffer(buf, count, ppos, buff, offset);
-	kfree(buff);
-
-	return ret;
+	return sprintf(buf, "%d\n", fts_data->gesture_type);
 }
 
 static ssize_t asus_gesture_proc_type_write(struct file *filp, const char *buff, size_t len, loff_t *off)
