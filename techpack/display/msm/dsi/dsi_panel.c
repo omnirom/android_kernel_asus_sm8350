@@ -666,14 +666,13 @@ static int dsi_panel_update_backlight(struct dsi_panel *panel,
 	DSI_LOG("[From] set bl=%d\n", bl_lvl);
 	dsi_anakin_record_backlight(bl_lvl);
 	dsi_zf8_record_backlight(bl_lvl);
-	//dsi_zf8_set_dimming_smooth(panel, bl_lvl);
 
 	if (panel->panel_hbm_mode > 0) {
 		DSI_LOG("hbm mode %d no bl\n", panel->panel_hbm_mode);
 		return rc;
 	}
 
-	dsi_zf8_set_dimming_smooth(panel, bl_lvl);
+	//dsi_zf8_set_dimming_smooth(panel, bl_lvl);
 
 	// always 0 except project Anakin & Picasso
 	if (panel->allow_panel_fod_hbm == 1)
