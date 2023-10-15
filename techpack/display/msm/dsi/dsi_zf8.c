@@ -355,7 +355,7 @@ static struct file_operations lcd_unique_id_ops = {
 };
 
 // exit idle mode
-static void display_exit_idle_mode()
+static void display_exit_idle_mode(void)
 {
 	int rc = 0;
 		

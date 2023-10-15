@@ -108,12 +108,12 @@ void unattended_timer_expired(struct timer_list *unused)
 }
 EXPORT_SYMBOL_GPL(unattended_timer_expired);
 
-void del_pm_timer(){
+void del_pm_timer(void){
 	del_timer(&unattended_timer);
 	pm_stay_unattended_period = 0;
 }
 EXPORT_SYMBOL_GPL(del_pm_timer);
-void mod_pm_timer(){
+void mod_pm_timer(void){
     mod_timer(&unattended_timer,
 						jiffies + msecs_to_jiffies(PM_UNATTENDED_TIMEOUT));
 }
