@@ -1,0 +1,10 @@
+#
+# Focaltech Touchscreen driver configuration
+#
+
+config TOUCHSCREEN_FTS_ZF
+    tristate "Focaltech Touchscreen"
+    depends on MACH_ASUS_SAKE
+    help
+      Say Y here if you have Focaltech touch panel.
+      If unsure, say N.
