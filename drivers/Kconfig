@@ -230,4 +230,7 @@ source "drivers/interconnect/Kconfig"
 
 source "drivers/counter/Kconfig"
 
+# ASUS_BSP Deeo: AuraLight
+source "drivers/sensors/Kconfig"
+
 endmenu
