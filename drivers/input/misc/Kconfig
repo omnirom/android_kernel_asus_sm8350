@@ -914,4 +914,15 @@ config INPUT_STPMIC1_ONKEY
 	  To compile this driver as a module, choose M here: the
 	  module will be called stpmic1_onkey.
 
+config INPUT_SX932X_SAKE
+	tristate "INPUT_SX932X_SAKE cap sensor input device"
+	depends on MACH_ASUS_SAKE
+	default m
+	help
+	  Say Y here if you want to support a cap sensor connected via I2C
+	  with a INPUT_SX932X_SAKE.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called INPUT_SX932X_SAKE.
+
 endif
