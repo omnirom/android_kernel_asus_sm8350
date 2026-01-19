@@ -1067,6 +1067,10 @@ ifeq ($(CONFIG_RELR),y)
 LDFLAGS_vmlinux	+= --pack-dyn-relocs=relr --use-android-relr-tags
 endif
 
+ifeq ($(CONFIG_MACH_ASUS_SAKE),y)
+KBUILD_CPPFLAGS += -DASUS_SAKE_PROJECT=1
+endif
+
 # userspace programs are linked via the compiler, use the correct linker
 ifeq ($(CONFIG_CC_IS_CLANG)$(CONFIG_LD_IS_LLD),yy)
 KBUILD_USERLDFLAGS += $(call cc-option, --ld-path=$(LD))
