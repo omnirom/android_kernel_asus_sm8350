@@ -58,7 +58,11 @@ obj-y				+= cardreader/
 obj-$(CONFIG_PVPANIC)   	+= pvpanic.o
 obj-$(CONFIG_HABANA_AI)		+= habanalabs/
 obj-$(CONFIG_XILINX_SDFEC)	+= xilinx_sdfec.o
+ifeq ($(CONFIG_MACH_ASUS_SAKE),y)
+obj-$(CONFIG_UID_SYS_STATS)	+= uid_sys_stats_zf8.o
+else
 obj-$(CONFIG_UID_SYS_STATS)	+= uid_sys_stats.o
+endif
 obj-$(CONFIG_QSEECOM)		+= qseecom-mod.o
 qseecom-mod-y			:= qseecom.o
 qseecom-mod-$(CONFIG_COMPAT)	+= compat_qseecom.o
