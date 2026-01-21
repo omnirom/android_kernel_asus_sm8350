@@ -43,6 +43,19 @@
 #include "msm_dailink.h"
 #include "msm-common.h"
 
+//ASUS_BSP +++   add for codec_status
+#if defined ASUS_SAKE_PROJECT
+#include <linux/proc_fs.h>
+#include <linux/syscalls.h>
+#include <linux/fs.h>
+#include <linux/file.h>
+#define AUDIO_CODEC_PROC_FILE  "driver/audio_codec"
+static struct proc_dir_entry *audio_codec_proc_file;
+int codec_status=0;
+int codec_num=0;
+#endif
+//ASUS_BSP ---   add for codec_status
+
 #define DRV_NAME "lahaina-asoc-snd"
 #define __CHIPSET__ "LAHAINA "
 #define MSM_DAILINK_NAME(name) (__CHIPSET__#name)
@@ -74,7 +87,7 @@
 #define CODEC_EXT_CLK_RATE          9600000
 #define ADSP_STATE_READY_TIMEOUT_MS 3000
 #define DEV_NAME_STR_LEN            32
-#define WCD_MBHC_HS_V_MAX           1600
+#define WCD_MBHC_HS_V_MAX           1700
 
 #define TDM_CHANNEL_MAX		8
 #define TDM_SLOT_OFFSET_MAX 	32
@@ -341,6 +354,7 @@ static u32 mi2s_ebit_clk[MI2S_MAX] = {
 	Q6AFE_LPASS_CLK_ID_PRI_MI2S_EBIT,
 	Q6AFE_LPASS_CLK_ID_SEC_MI2S_EBIT,
 	Q6AFE_LPASS_CLK_ID_TER_MI2S_EBIT,
+	Q6AFE_LPASS_CLK_ID_QUAD_MI2S_EBIT,//Austin+++
 };
 
 static struct mi2s_conf mi2s_intf_conf[MI2S_MAX];
@@ -493,21 +507,25 @@ static struct dev_config aux_pcm_tx_cfg[] = {
 
 /* Default configuration of MI2S channels */
 static struct dev_config mi2s_rx_cfg[] = {
-	[PRIM_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 2},
+	[PRIM_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S24_LE, 2}, /* Austin+++ *//* mei+++for vodka tfa9874 */
 	[SEC_MI2S]  = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 2},
 	[TERT_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 2},
 	[QUAT_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 2},
 	[QUIN_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 2},
-	[SEN_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 2},
+	[SEN_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S24_LE, 2}, /* ASUS_BSP Paul +++ */
 };
 
 static struct dev_config mi2s_tx_cfg[] = {
+#if defined ASUS_SAKE_PROJECT
+	[PRIM_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S24_LE, 2},/* sake cs35l45 amp echo reference */
+#else
 	[PRIM_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 1},
+#endif
 	[SEC_MI2S]  = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 1},
 	[TERT_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 1},
-	[QUAT_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 1},
+	[QUAT_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 1}, /* Austin +++ */
 	[QUIN_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 1},
-	[SEN_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S16_LE, 1},
+	[SEN_MI2S] = {SAMPLING_RATE_48KHZ, SNDRV_PCM_FORMAT_S24_LE, 2}, /* ASUS_BSP Paul +++ */
 };
 
 static struct tdm_dev_config pri_tdm_dev_config[MAX_PATH][TDM_PORT_MAX] = {
@@ -6638,10 +6656,10 @@ static void *def_wcd_mbhc_cal(void)
 		(sizeof(btn_cfg->_v_btn_low[0]) * btn_cfg->num_btn);
 
 	btn_high[0] = 75;
-	btn_high[1] = 150;
-	btn_high[2] = 237;
-	btn_high[3] = 500;
-	btn_high[4] = 500;
+	btn_high[1] = 125;
+	btn_high[2] = 225;
+	btn_high[3] = 438;
+	btn_high[4] = 438;
 	btn_high[5] = 500;
 	btn_high[6] = 500;
 	btn_high[7] = 500;
@@ -8450,6 +8468,56 @@ err_hs_detect:
 	return ret;
 }
 
+#ifdef ASUS_SAKE_PROJECT
+struct cs35l45_dai_name {
+    const char *name;
+    const char *dai_name;
+};
+
+static struct cs35l45_dai_name cs35l45_dai_names[] = {
+       {
+               .name = "cs35l45.3-0030",//for receiver AMP
+               .dai_name = "cs35l45",
+       },
+       {
+               .name = "cs35l45.3-0031",//for speaker AMP
+               .dai_name = "cs35l45",
+       },
+};
+
+int register_receiver_dai_name(struct device *dev, int i2cbus, int addr){
+    char buf[50];
+    char *str;
+    snprintf(buf, 50, "cs35l45.%x-00%x", i2cbus, addr);
+    str = devm_kzalloc(dev, strlen(buf) + 1, GFP_KERNEL);
+    if (!str)
+        return -EINVAL;
+    memcpy(str, buf, strlen(buf));
+    pr_info("%s: register cs35l45 receiver name =  %s\n", __func__, str);
+    cs35l45_dai_names[0].name = str;
+    
+    cs35l45_dai_names[0].dai_name = "cs35l45";
+    return 0;
+}
+EXPORT_SYMBOL(register_receiver_dai_name);
+
+int register_speaker_dai_name(struct device *dev, int i2cbus, int addr){
+    char buf[50];
+    char *str;
+    snprintf(buf, 50, "cs35l45.%x-00%x", i2cbus, addr);
+    str = devm_kzalloc(dev, strlen(buf) + 1, GFP_KERNEL);
+    if (!str)
+        return -EINVAL;
+    memcpy(str, buf, strlen(buf));
+    pr_info("%s: register cs35l45 speaker name =  %s\n", __func__, str);
+    cs35l45_dai_names[1].name = str;
+
+    cs35l45_dai_names[1].dai_name = "cs35l45";
+    return 0;
+}
+EXPORT_SYMBOL(register_speaker_dai_name);
+#endif
+
 static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 {
 	struct snd_soc_card *card = NULL;
@@ -8541,6 +8609,20 @@ static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 				__func__);
 		} else {
 			if (mi2s_audio_intf) {
+
+#ifdef ASUS_SAKE_PROJECT
+				//for pri_mi2s_rx
+				msm_mi2s_be_dai_links[0].codecs[0].name = cs35l45_dai_names[0].name;
+				msm_mi2s_be_dai_links[0].codecs[0].dai_name = cs35l45_dai_names[0].dai_name;
+				msm_mi2s_be_dai_links[0].codecs[1].name = cs35l45_dai_names[1].name;
+				msm_mi2s_be_dai_links[0].codecs[1].dai_name = cs35l45_dai_names[1].dai_name;
+				
+				//for pri_mi2s_tx
+				msm_mi2s_be_dai_links[1].codecs[0].name = cs35l45_dai_names[0].name;
+				msm_mi2s_be_dai_links[1].codecs[0].dai_name = cs35l45_dai_names[0].dai_name;
+				msm_mi2s_be_dai_links[1].codecs[1].name = cs35l45_dai_names[1].name;
+				msm_mi2s_be_dai_links[1].codecs[1].dai_name = cs35l45_dai_names[1].dai_name;
+#endif
 				memcpy(msm_lahaina_dai_links + total_links,
 					msm_mi2s_be_dai_links,
 					sizeof(msm_mi2s_be_dai_links));
@@ -9497,6 +9579,42 @@ deinit:
 	return ret;
 }
 
+//ASUS_BSP +++   add for codec_status
+#if defined ASUS_SAKE_PROJECT
+static ssize_t audio_codec_proc_read(struct file *filp, char __user *buff, size_t len, loff_t *off)
+{
+       char messages[256];
+       pr_err("[Audio] audio_codec_proc_read, codec_status is %d\n", codec_status);
+       if(*off)
+               return 0;
+       memset(messages, 0, sizeof(messages));
+       if (len > 256)
+               len = 256;
+
+       sprintf(messages, "%d\n", codec_status);
+    if (copy_to_user(buff, messages, sizeof(messages)))
+               return -EFAULT;
+       (*off)++;
+       return len;
+}
+
+static struct file_operations proc_fops=
+{
+    .read=audio_codec_proc_read,
+    .owner=THIS_MODULE,
+};
+
+static void create_audio_codec_proc_file(void)
+{
+    pr_err("[Audio] create_audio_codec_proc_file\n");
+    audio_codec_proc_file = proc_create(AUDIO_CODEC_PROC_FILE, 0444, NULL, &proc_fops);
+    if (!audio_codec_proc_file){
+        pr_err("[Audio] create_audio_codec_proc_file failed!\n");
+    }
+}
+#endif
+//ASUS_BSP ---   add for codec_status
+
 static int msm_asoc_machine_probe(struct platform_device *pdev)
 {
 	struct snd_soc_card *card = NULL;
@@ -9541,6 +9659,15 @@ static int msm_asoc_machine_probe(struct platform_device *pdev)
 			__func__, ret);
 		goto err;
 	}
+
+//ASUS_BSP +++   add for codec_status
+#if defined ASUS_SAKE_PROJECT
+    if(!codec_num){
+        codec_num++;
+        create_audio_codec_proc_file();
+    }
+#endif
+//ASUS_BSP ---   add for codec_status
 
 	ret = snd_soc_of_parse_audio_routing(card, "qcom,audio-routing");
 	if (ret) {
@@ -9724,9 +9851,22 @@ static int msm_asoc_machine_probe(struct platform_device *pdev)
 	/* Add QoS request for audio tasks */
 	msm_audio_add_qos_request();
 
+//ASUS_BSP +++   add for codec_status
+#if defined ASUS_SAKE_PROJECT
+	if(!codec_status){
+		codec_status=1;
+	}
+#endif
+//ASUS_BSP +++   add for codec_status
+
 	return 0;
 err:
 	devm_kfree(&pdev->dev, pdata);
+//ASUS_BSP +++  add for codec_status
+#if defined ASUS_SAKE_PROJECT
+    codec_status=0;
+#endif
+//ASUS_BSP ---   add for codec_status
 	return ret;
 }
 
