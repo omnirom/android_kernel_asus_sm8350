@@ -10,6 +10,9 @@
 #include "dp_parser.h"
 #include "dp_debug.h"
 
+/* ASUS BSP Display +++ */
+struct dp_parser *asus_parser;
+
 static void dp_parser_unmap_io_resources(struct dp_parser *parser)
 {
 	int i = 0;
@@ -359,6 +362,28 @@ static int dp_parser_gpio(struct dp_parser *parser)
 
 		mp->gpio_config[i].value = 0;
 	}
+
+	/* ASUS BSP Display +++ */
+	parser->pcie_mux_en_gpio = of_get_named_gpio(of_node, "qcom,pcie-mux-en-gpio", 0);
+	if (gpio_is_valid(parser->pcie_mux_en_gpio)) {
+		if (gpio_request(parser->pcie_mux_en_gpio,"pcie_mux_en")) {
+			DP_LOG("%s: failed to request gpio\n", "pcie_mux_en");
+		} else {
+			DP_LOG("pcie-mux-en-gpio is %d\n", parser->pcie_mux_en_gpio);
+			gpio_direction_output(parser->pcie_mux_en_gpio, 1);
+		}
+	}
+
+	parser->audio_debug_gpio = of_get_named_gpio(of_node, "qcom,audio-debug-gpio", 0);
+	if (gpio_is_valid(parser->audio_debug_gpio)) {
+		if (gpio_request(parser->audio_debug_gpio,"audio_debug")) {
+			DP_LOG("%s: failed to request gpio\n", "audio_debug");
+		} else {
+			DP_LOG("audio-debug-gpio is %d\n", parser->audio_debug_gpio);
+			gpio_direction_output(parser->audio_debug_gpio, 1);
+		}
+	}
+	/* ASUS BSP Display --- */
 
 	return 0;
 }
@@ -997,6 +1022,9 @@ struct dp_parser *dp_parser_get(struct platform_device *pdev)
 	parser->get_io_buf = dp_parser_get_io_buf;
 	parser->clear_io_buf = dp_parser_clear_io_buf;
 	parser->pdev = pdev;
+
+	/* ASUS BSP Display +++ */
+	asus_parser = parser;
 
 	return parser;
 }

@@ -22,6 +22,9 @@
 #include "sde_dbg.h"
 #include "dsi_parser.h"
 
+/* ASUS BSP Display +++ */
+#include "dsi_zf8.h"
+
 #define to_dsi_display(x) container_of(x, struct dsi_display, host)
 #define INT_BASE_10 10
 
@@ -36,6 +39,14 @@
 #define MAX_TE_SOURCE_ID  2
 
 #define SEC_PANEL_NAME_MAX_LEN  256
+
+#if defined ASUS_SAKE_PROJECT
+bool fps_change = false;
+EXPORT_SYMBOL(fps_change);
+extern bool g_Charger_mode;
+#endif
+
+struct dsi_display *primary_display;
 
 u8 dbgfs_tx_cmd_buf[SZ_4K];
 static char dsi_display_primary[MAX_CMDLINE_PARAM_LEN];
@@ -1249,6 +1260,7 @@ int dsi_display_set_power(struct drm_connector *connector,
 
 	switch (power_mode) {
 	case SDE_MODE_DPMS_LP1:
+		DSI_LOG("enter LP1 doze\n");
 		if (display->panel->power_mode == SDE_MODE_DPMS_LP2) {
 			if (dsi_display_set_ulp_load(display, false) < 0)
 				DSI_WARN("failed to set load for lp1 state\n");
@@ -1256,6 +1268,7 @@ int dsi_display_set_power(struct drm_connector *connector,
 		rc = dsi_panel_set_lp1(display->panel);
 		break;
 	case SDE_MODE_DPMS_LP2:
+		DSI_LOG("enter LP2 doze suspend\n");
 		rc = dsi_panel_set_lp2(display->panel);
 		if (dsi_display_set_ulp_load(display, true) < 0)
 			DSI_WARN("failed to set load for lp2 state\n");
@@ -3396,9 +3409,13 @@ static ssize_t dsi_host_transfer(struct mipi_dsi_host *host,
 				(display->enabled))
 			cmd_flags |= DSI_CTRL_CMD_CUSTOM_DMA_SCHED;
 
+		/* ASUS BSP Display +++ */
+		cmd_flags |= dsi_zf8_support_cmd_read_flags(msg->flags);
+
 		rc = dsi_ctrl_cmd_transfer(display->ctrl[ctrl_idx].ctrl, msg,
 				&cmd_flags);
-		if (rc < 0) {
+		/* ASUS BSP Display, rc=1 if CMD_READ succeed +++ */
+		if (rc && !(cmd_flags& DSI_CTRL_CMD_READ)) {
 			DSI_ERR("[%s] cmd transfer failed, rc=%d\n",
 			       display->name, rc);
 			goto error_disable_cmd_engine;
@@ -5851,6 +5868,9 @@ static int dsi_display_bind(struct device *dev,
 
 	msm_register_vm_event(master, dev, &vm_event_ops, (void *)display);
 
+	/* ASUS BSP Display +++ */
+	dsi_zf8_display_init(display);
+
 	goto error;
 
 error_host_deinit:
@@ -7156,6 +7176,7 @@ int dsi_display_get_modes(struct dsi_display *display,
 exit:
 	*out_modes = display->modes;
 	rc = 0;
+	primary_display = display;
 
 error:
 	if (rc)
@@ -7515,6 +7536,15 @@ int dsi_display_set_mode(struct dsi_display *display,
 			timing.h_active, timing.v_active, timing.refresh_rate);
 	SDE_EVT32(adj_mode.priv_info->mdp_transfer_time_us,
 			timing.h_active, timing.v_active, timing.refresh_rate);
+	/* ASUS BSP Display +++ */
+	DSI_LOG("resolution=%d*%d, fps=%d\n",
+			timing.v_active, timing.h_active,
+			timing.refresh_rate);
+
+#if defined ASUS_SAKE_PROJECT
+	if(!g_Charger_mode)
+		fps_change = true;
+#endif
 
 	memcpy(display->panel->cur_mode, &adj_mode, sizeof(adj_mode));
 error:
@@ -8052,6 +8082,10 @@ error_panel_post_unprep:
 error:
 	mutex_unlock(&display->display_lock);
 	SDE_EVT32(SDE_EVTLOG_FUNC_EXIT);
+
+	/* ASUS BSP Display +++ */
+	dsi_zf8_set_panel_is_on(true);
+
 	return rc;
 }
 
@@ -8571,6 +8605,9 @@ int dsi_display_disable(struct dsi_display *display)
 		return -EINVAL;
 	}
 
+	/* ASUS BSP Display +++ */
+	dsi_zf8_set_panel_is_on(false);
+
 	SDE_EVT32(SDE_EVTLOG_FUNC_ENTRY);
 	mutex_lock(&display->display_lock);
 
@@ -8777,6 +8814,10 @@ int dsi_display_unprepare(struct dsi_display *display)
 
 	SDE_EVT32(SDE_EVTLOG_FUNC_EXIT);
 	return rc;
+}
+
+struct dsi_display *get_main_display(void) {
+	return primary_display;
 }
 
 void __init dsi_display_register(void)

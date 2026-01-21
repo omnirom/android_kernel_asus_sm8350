@@ -23,6 +23,9 @@
 #include "sde_trace.h"
 #include <drm/drm_atomic_uapi.h>
 
+/* ASUS BSP Display +++ */
+#include "../dsi/dsi_zf8.h"
+
 #define MULTIPLE_CONN_DETECTED(x) (x > 1)
 
 struct msm_commit {
@@ -540,6 +543,10 @@ static void complete_commit(struct msm_commit *c)
 static void _msm_drm_commit_work_cb(struct kthread_work *work)
 {
 	struct msm_commit *commit = NULL;
+	/* ASUS BSP Display +++ */
+	bool commit_for_fod_spot = false;
+	bool report_fod_spot_disappear = false;
+	/* ASUS BSP Display --- */
 
 	if (!work) {
 		DRM_ERROR("%s: Invalid commit work data!\n", __func__);
@@ -547,10 +554,21 @@ static void _msm_drm_commit_work_cb(struct kthread_work *work)
 	}
 
 	commit = container_of(work, struct msm_commit, commit_work);
-
+#if defined ASUS_SAKE_PROJECT
+	commit_for_fod_spot = zf8_atomic_get_spot_status(0);
+	report_fod_spot_disappear = zf8_atomic_get_spot_status(1);
+#endif
 	SDE_ATRACE_BEGIN("complete_commit");
 	complete_commit(commit);
 	SDE_ATRACE_END("complete_commit");
+
+#if defined ASUS_SAKE_PROJECT
+	if (report_fod_spot_disappear)
+		zf8_atomic_set_spot_status(1);
+
+	if (commit_for_fod_spot)
+		zf8_atomic_set_spot_status(0);
+#endif
 }
 
 static struct msm_commit *commit_init(struct drm_atomic_state *state,

@@ -122,7 +122,8 @@ msm_drm-$(CONFIG_DRM_MSM_DSI) += dsi/dsi_phy.o \
 	dsi/dsi_display.o \
 	dsi/dsi_panel.o \
 	dsi/dsi_clk_manager.o \
-	dsi/dsi_display_test.o
+	dsi/dsi_display_test.o \
+	dsi/dsi_zf8.o
 
 msm_drm-$(CONFIG_DSI_PARSER) += dsi/dsi_parser.o
 

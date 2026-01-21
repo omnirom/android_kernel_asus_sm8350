@@ -42,6 +42,9 @@
 #include <drm/drm_device.h>
 #include <drm/drm_modes.h>
 #include <drm/drm_print.h>
+#ifdef CONFIG_MACH_ASUS
+#include <drm/drm_zf8.h>
+#endif
 
 #include "drm_crtc_internal.h"
 
@@ -1016,6 +1019,14 @@ bool drm_mode_match(const struct drm_display_mode *mode1,
 	if (!mode1 || !mode2)
 		return false;
 
+#ifdef CONFIG_MACH_ASUS
+	//ASUS BSP Display +++
+	if( is_ZF8_DSI_mode(mode1->vdisplay, mode1->vtotal) &&
+		!zf8_refreshrate_match(mode1->vrefresh, mode2->vrefresh) ) {
+		return false;
+	}
+	//ASUS BSP Display ---
+#endif
 	if (match_flags & DRM_MODE_MATCH_TIMINGS &&
 	    !drm_mode_match_timings(mode1, mode2))
 		return false;
@@ -1332,8 +1343,19 @@ static int drm_mode_compare(void *priv, struct list_head *lh_a, struct list_head
 	diff = b->hdisplay * b->vdisplay - a->hdisplay * a->vdisplay;
 	if (diff)
 		return diff;
-
+#ifdef CONFIG_MACH_ASUS
+	//ASUS BSP Display +++
+	if(is_ZF8_DSI_mode(a->vdisplay, a->vtotal)) {
+		diff = a->vrefresh - b->vrefresh;
+	}
+	else{
+		diff = b->vrefresh - a->vrefresh;
+	}
+	//ASUS BSP Display ---
+#else
 	diff = b->vrefresh - a->vrefresh;
+#endif
+
 	if (diff)
 		return diff;
 

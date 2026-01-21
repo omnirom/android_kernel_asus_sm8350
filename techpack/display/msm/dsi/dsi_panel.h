@@ -125,6 +125,7 @@ struct dsi_backlight_config {
 	u32 bl_scale;
 	u32 bl_scale_sv;
 	bool bl_inverted_dbv;
+	u32 real_bl_level;
 
 	int en_gpio;
 	/* PWM params */
@@ -153,6 +154,9 @@ struct dsi_panel_reset_config {
 	int disp_en_gpio;
 	int lcd_mode_sel_gpio;
 	u32 mode_sel_state;
+
+	/* ASUS BSP Display +++ */
+	int px_reset_gpio;
 };
 
 enum esd_check_status_mode {
@@ -200,6 +204,12 @@ struct dsi_panel_ops {
 	int (*bl_unregister)(struct dsi_panel *panel);
 	int (*parse_gpios)(struct dsi_panel *panel);
 	int (*parse_power_cfg)(struct dsi_panel *panel);
+};
+
+#define BRIGHTNESS_ALPHA_PAIR_LEN 2
+struct brightness_alpha_pair {
+	u32 brightness;
+	u32 alpha;
 };
 
 struct dsi_panel {
@@ -267,6 +277,27 @@ struct dsi_panel {
 	u32 tlmm_gpio_count;
 
 	struct dsi_panel_ops panel_ops;
+
+	/* ASUS BSP Display +++ */
+	const char *panel_vendor_id;
+	int panel_hbm_mode;
+	int panel_fod_hbm_mode;
+	int allow_panel_fod_hbm;
+	bool allow_fod_hbm_process;
+	bool panel_is_on;
+	u32 panel_last_backlight;
+	bool aod_state;
+	bool aod_first_time;
+	bool has_enter_aod_before;
+	bool fod_in_doze;
+	int panel_bl_count; // count for enable dimming
+	int  aod_mode;//0: not aod mode 1: AOD low mode 2: AOD high mode
+	bool dc_fps_change;
+
+	struct brightness_alpha_pair *fod_dim_lut;
+	unsigned int fod_dim_lut_len;
+	u8 fod_dim_alpha;
+	bool fod_hbm_enabled;
 };
 
 static inline bool dsi_panel_ulps_feature_enabled(struct dsi_panel *panel)
@@ -291,7 +322,11 @@ static inline void dsi_panel_release_panel_lock(struct dsi_panel *panel)
 
 static inline bool dsi_panel_is_type_oled(struct dsi_panel *panel)
 {
+#if defined ASUS_SAKE_PROJECT
+	return false;
+#else
 	return (panel->panel_type == DSI_DISPLAY_PANEL_TYPE_OLED);
+#endif
 }
 
 struct dsi_panel *dsi_panel_get(struct device *parent,
@@ -402,4 +437,7 @@ int dsi_panel_create_cmd_packets(const char *data, u32 length, u32 count,
 void dsi_panel_destroy_cmd_packets(struct dsi_panel_cmd_set *set);
 
 void dsi_panel_dealloc_cmd_packets(struct dsi_panel_cmd_set *set);
+
+int dsi_panel_set_fod_hbm(struct dsi_panel *panel, bool status);
+
 #endif /* _DSI_PANEL_H_ */

@@ -3263,6 +3263,11 @@ static enum drm_mode_status dp_display_validate_mode(
 			mode->picture_aspect_ratio != debug->aspect_ratio))
 		goto end;
 
+	/* ASUS BSP Display +++ */
+	if (!dp_asus_validate_mode(dp_panel, mode))
+		goto end;
+	/* ASUS BSP Display --- */
+
 	mode_status = MODE_OK;
 end:
 	mutex_unlock(&dp->session_lock);

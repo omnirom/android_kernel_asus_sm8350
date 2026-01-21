@@ -145,6 +145,12 @@ static char *initcall_command_line;
 static char *execute_command;
 static char *ramdisk_execute_command;
 
+#ifdef CONFIG_MACH_ASUS
+char g_lcd_unique_id[10];
+int   g_lcd_stage_id;
+EXPORT_SYMBOL(g_lcd_stage_id);
+#endif
+
 /*
  * Used to generate warnings if static_key manipulation functions are used
  * before jump_label_init is called.
@@ -178,7 +184,28 @@ static int set_charger_mode(char *str)
 	return 0;
 }
 __setup("androidboot.mode=", set_charger_mode);
+EXPORT_SYMBOL(g_Charger_mode);
 
+/* ASUS BSP Display +++ */
+static int set_lcd_unique_id(char *str)
+{
+	scnprintf(g_lcd_unique_id, sizeof(g_lcd_unique_id), str);
+	g_lcd_stage_id = g_lcd_unique_id[6] - 48 ;
+       printk("[Display] lcd unique id = %s g_lcd_stage_id = %d\n",  g_lcd_unique_id,g_lcd_stage_id);
+    return 0;
+}
+__setup("LCD=", set_lcd_unique_id);
+EXPORT_SYMBOL(g_lcd_unique_id);
+
+bool disable_vibrator=false;
+EXPORT_SYMBOL(disable_vibrator);
+static int get_disable_vibrator(char *str)
+{
+    if ( strcmp("N", str) == 0 )
+        disable_vibrator = true;
+    return 0;
+}
+__setup("ASUSVIB=", get_disable_vibrator);
 #endif
 
 /*
