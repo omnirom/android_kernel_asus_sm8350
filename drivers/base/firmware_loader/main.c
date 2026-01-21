@@ -499,6 +499,52 @@ fw_get_filesystem_firmware(struct device *device, struct fw_priv *fw_priv,
 			break;
 		}
 
+#if defined ASUS_SAKE_PROJECT
+		/* ASUS BSP : For Change Sensor Core FW loading path */
+		if (!strncmp(fw_priv->fw_name, "slpi", 4)) {
+			snprintf(path, PATH_MAX, "%s/%s", "/vendor/firmware", fw_priv->fw_name);
+			dev_err(device, "[SLPI] Try to load firmware : %s \n", path);
+		}
+
+		if (!strncmp(fw_priv->fw_name, "adsp", 4)) {
+			snprintf(path, PATH_MAX, "%s/%s", "/vendor/firmware", fw_priv->fw_name);
+			dev_err(device, "[Audio] Try to load firmware: %s\n", path);
+		}
+		/* ASUS BSP ---*/
+
+		//ASUS BSP haptic+++
+		if (!strncmp(fw_priv->fw_name, "aw8697", 6)) {
+			snprintf(path, PATH_MAX, "%s/%s", "/system/vendor/firmware", fw_priv->fw_name);
+			dev_err(device, "[AW8697] Try to load firmware: %s\n", path);
+		}
+		//ASUS BSP haptic---
+
+		/* ASUS BSP audio: change fw path */
+		if (!strncmp(fw_priv->fw_name, "cs35l45", 7)) {
+			snprintf(path, PATH_MAX, "%s/%s", "/vendor/firmware", fw_priv->fw_name);
+			dev_err(device, "[Audio] Try to load firmware: %s\n", path);
+		}
+
+		/* BSP_WIFI +++ */
+		if (!strncmp(fw_priv->fw_name, "bdwlan", 6)) {
+			snprintf(path, PATH_MAX, "%s/%s", "/vendor/firmware", fw_priv->fw_name);
+			dev_err(device, "[wlan] Try to load firmware : %s \n", path);
+		}
+		if (!strncmp(fw_priv->fw_name, "amss", 4)) {
+			snprintf(path, PATH_MAX, "%s/%s", "/vendor/firmware", fw_priv->fw_name);
+			dev_err(device, "[wlan] Try to load firmware : %s \n", path);
+		}
+		if (!strncmp(fw_priv->fw_name, "regdb", 5)) {
+			snprintf(path, PATH_MAX, "%s/%s", "/vendor/firmware", fw_priv->fw_name);
+			dev_err(device, "[wlan] Try to load firmware : %s \n", path);
+		}
+		if (!strncmp(fw_priv->fw_name, "m3.bin", 6)) {
+			snprintf(path, PATH_MAX, "%s/%s", "/vendor/firmware", fw_priv->fw_name);
+			dev_err(device, "[wlan] Try to load firmware : %s \n", path);
+		}
+		/* BSP_WIFI ---*/
+#endif
+
 		fw_priv->size = 0;
 		rc = kernel_read_file_from_path(path, &buffer, &size,
 						msize, id);
