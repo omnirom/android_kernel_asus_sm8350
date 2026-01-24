@@ -717,7 +717,11 @@ static int ucsi_dr_swap(struct typec_port *port, enum typec_data_role role)
 	u64 command;
 	int ret = 0;
 
+#ifdef CONFIG_MACH_ASUS
+	mutex_lock(&con->swap_lock);
+#else
 	mutex_lock(&con->lock);
+#endif
 
 	if (!con->partner) {
 		ret = -ENOTCONN;
@@ -749,7 +753,11 @@ static int ucsi_dr_swap(struct typec_port *port, enum typec_data_role role)
 	return 0;
 
 out_unlock:
+#ifdef CONFIG_MACH_ASUS
+	mutex_unlock(&con->swap_lock);
+#else
 	mutex_unlock(&con->lock);
+#endif
 
 	return ret;
 }
@@ -760,8 +768,11 @@ static int ucsi_pr_swap(struct typec_port *port, enum typec_role role)
 	enum typec_role cur_role;
 	u64 command;
 	int ret = 0;
-
+#ifdef CONFIG_MACH_ASUS
+	mutex_lock(&con->swap_lock);
+#else
 	mutex_lock(&con->lock);
+#endif
 
 	if (!con->partner) {
 		ret = -ENOTCONN;
@@ -798,7 +809,11 @@ static int ucsi_pr_swap(struct typec_port *port, enum typec_role role)
 	}
 
 out_unlock:
+#ifdef CONFIG_MACH_ASUS
+	mutex_unlock(&con->swap_lock);
+#else
 	mutex_unlock(&con->lock);
+#endif
 
 	return ret;
 }
@@ -831,6 +846,9 @@ static int ucsi_register_port(struct ucsi *ucsi, int index)
 	INIT_WORK(&con->work, ucsi_handle_connector_change);
 	init_completion(&con->complete);
 	mutex_init(&con->lock);
+#ifdef CONFIG_MACH_ASUS
+	mutex_init(&con->swap_lock);
+#endif
 	con->num = index + 1;
 	con->ucsi = ucsi;
 
