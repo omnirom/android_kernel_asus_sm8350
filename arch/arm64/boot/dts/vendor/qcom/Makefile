@@ -1,5 +1,35 @@
+# +++ ASUS_BSP : add for asus dtbo
+$(warning [Build] build dtbo CONFIG_BUILD_ARM64_DT_OVERLAY = $(CONFIG_BUILD_ARM64_DT_OVERLAY))
+# --- ASUS_BSP : add for asus dtbo
+
 ifneq ($(CONFIG_ARCH_QTI_VM), y)
 ifeq ($(CONFIG_BUILD_ARM64_DT_OVERLAY),y)
+
+# +++ ASUS_BSP : add for asus dtbo
+ifdef CONFIG_MACH_ASUS_SAKE
+$(warning build dtbo for SAKE...)
+
+dtbo-$(CONFIG_ARCH_LAHAINA) += \
+                SAKE-EVB-overlay.dtbo \
+                SAKE-EVB2-overlay.dtbo \
+                SAKE-SR1-overlay.dtbo \
+                SAKE-SR2-overlay.dtbo \
+                SAKE-ER1-overlay.dtbo \
+                SAKE-ER2-overlay.dtbo \
+                SAKE-PR-overlay.dtbo \
+                SAKE-MP-overlay.dtbo \
+
+lahaina-mtp-overlay.dtbo-base := lahaina.dtb lahaina-v2.dtb lahaina-v2.1.dtb
+SAKE-EVB-overlay.dtbo-base := lahaina.dtb lahaina-v2.dtb lahaina-v2.1.dtb
+SAKE-EVB2-overlay.dtbo-base := lahaina.dtb lahaina-v2.dtb lahaina-v2.1.dtb
+SAKE-SR1-overlay.dtbo-base := lahaina.dtb lahaina-v2.dtb lahaina-v2.1.dtb
+SAKE-SR2-overlay.dtbo-base := lahaina.dtb lahaina-v2.dtb lahaina-v2.1.dtb
+SAKE-ER1-overlay.dtbo-base := lahaina.dtb lahaina-v2.dtb lahaina-v2.1.dtb
+SAKE-ER2-overlay.dtbo-base := lahaina.dtb lahaina-v2.dtb lahaina-v2.1.dtb
+SAKE-PR-overlay.dtbo-base := lahaina.dtb lahaina-v2.dtb lahaina-v2.1.dtb
+SAKE-MP-overlay.dtbo-base := lahaina.dtb lahaina-v2.dtb lahaina-v2.1.dtb
+# --- ASUS_BSP : add for asus dtbo
+else
 dtbo-$(CONFIG_ARCH_LAHAINA) += lahaina-rumi-overlay.dtbo \
 	lahaina-mtp-overlay.dtbo \
 	lahaina-mtp-hsp-overlay.dtbo \
@@ -49,6 +79,7 @@ lahaina-cdp-hsp-pro-overlay.dtbo-base := lahaina.dtb lahaina-v2.dtb \
 					lahaina-v2.1.dtb
 lahaina-qrd-hsp-pro-overlay.dtbo-base := lahaina.dtb lahaina-v2.dtb \
 					lahaina-v2.1.dtb
+endif
 else
 dtb-$(CONFIG_ARCH_LAHAINA) += lahaina-rumi.dtb \
 	lahaina-mtp-hsp.dtb \
