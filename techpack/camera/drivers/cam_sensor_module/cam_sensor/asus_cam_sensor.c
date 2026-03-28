@@ -1180,8 +1180,8 @@ static void compareCameraSN (uint8_t moduleGroupIndex)
 	int SN_Offset=0;
 
 	static uint8_t buf_cali_id[128];
-	static uint16_t buf_cali_id_tmp[OTP_ID_LEN];
-	static uint8_t otp_data[OTP_ID_LEN];
+	static uint16_t buf_cali_id_tmp[OTP_ID_LEN +1];
+	static uint8_t otp_data[OTP_ID_LEN +1];
 
 	struct file *fp;
 	loff_t pos = 0;
